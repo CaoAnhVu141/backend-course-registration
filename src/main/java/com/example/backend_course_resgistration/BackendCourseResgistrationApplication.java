@@ -2,13 +2,13 @@ package com.example.backend_course_resgistration;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 
-@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
+@SpringBootApplication
+@ComponentScan(basePackages = {"com.example.backend_course_resgistration", "modules"})
 public class BackendCourseResgistrationApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(BackendCourseResgistrationApplication.class, args);
     }
-
 }
