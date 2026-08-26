@@ -1,4 +1,4 @@
-package modules.auth.service;
+package global.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
