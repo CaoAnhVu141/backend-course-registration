@@ -1,9 +1,8 @@
 HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 
 ### STS ###
 .apt_generated
@@ -35,3 +34,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Gradle leftover (nếu còn cache cũ) ###
+.gradle/
+*.ser
+
+### Maven target (class files vẫn còn bị track thì cần git rm --cached) ###
