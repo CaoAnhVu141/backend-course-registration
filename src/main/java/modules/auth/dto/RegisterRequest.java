@@ -1,4 +1,4 @@
-package modules.students.dto;
+package modules.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
