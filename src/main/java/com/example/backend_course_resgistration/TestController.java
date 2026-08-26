@@ -1,4 +1,4 @@
-package com.example.backend_course_resgistration.controller;
+package com.example.backend_course_resgistration;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 

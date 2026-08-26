@@ -35,8 +35,11 @@ out/
 ### VS Code ###
 .vscode/
 
-### Gradle leftover (nếu còn cache cũ) ###
+### Gradle leftover
 .gradle/
 *.ser
 
-### Maven target (class files vẫn còn bị track thì cần git rm --cached) ###
+### Environment / secrets ###
+.env
+application-local.properties
+application-local.yml
