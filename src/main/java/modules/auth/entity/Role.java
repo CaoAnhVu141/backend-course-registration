@@ -20,6 +20,7 @@ public class Role {
     @Column(name = "role_name", nullable = false, unique = true)
     private String name;
 
+    @Builder.Default
     @Column(name = "status", nullable = false)
     private boolean status = true;
 }
