@@ -4,30 +4,37 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "refresh_tokens")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class RefreshToken {
-    
-    @Entity
-    @Table(name = "refresh_tokens")
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public class RefreshToken {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        @Column(nullable = false, unique = true)
-        private String token;
+    @Column(nullable = false, unique = true)
+    private String token;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "user_id", nullable = false)
-        private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-        @Column(name = "expiry_date", nullable = false)
-        private LocalDateTime expiryDate;
+    @Column(name = "expiry_date", nullable = false)
+    private LocalDateTime expiryDate;
 
-        @Column(name = "revoked", nullable = false)
-        private boolean revoked;
+    @Column(name = "revoked", nullable = false)
+    private boolean revoked;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
 }
