@@ -22,7 +22,9 @@ import modules.auth.security.CustomUserDetailsService;
 import modules.auth.mapper.AuthMapper;
 import java.time.Duration;
 import modules.auth.exception.InvalidCredentialsException;
+import modules.auth.exception.InvalidTokenException;
 import org.springframework.security.core.AuthenticationException;
+import modules.auth.enums.EnumAuthError;
 
 @Service
 @RequiredArgsConstructor
@@ -60,10 +62,10 @@ public class AuthService {
     @Transactional
     public LoginResponse refreshToken(RefreshTokenRequest request) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
-                .orElseThrow(() -> new RuntimeException("Refresh token không hợp lệ"));
+                .orElseThrow(() -> new InvalidTokenException(EnumAuthError.INVALID_TOKEN));
 
         if (refreshToken.isRevoked() || refreshToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token đã hết hạn hoặc bị thu hồi");
+            throw new InvalidTokenException(EnumAuthError.EXPIRED_TOKEN);
         }
 
         User user = refreshToken.getUser();
