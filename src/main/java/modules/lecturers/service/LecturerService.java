@@ -10,12 +10,14 @@ import modules.lecturers.repository.LecturerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.stream.Collectors;
+import modules.lecturers.mapper.LecturerMapper;
 
 @Service
 @RequiredArgsConstructor
 public class LecturerService {
     private final LecturerRepository lecturerRepository;
     private final UserAccountService userAccountService;
+    private final LecturerMapper lecturerMapper;
 
     @Transactional
     public LecturerResponse register(RegisterLecturerRequest request) {
@@ -29,10 +31,6 @@ public class LecturerService {
                 .departmentId(request.getDepartmentId()).academicTitle(request.getAcademicTitle())
                 .maxReviewLoad(request.getMaxReviewLoad()).build());
 
-        return LecturerResponse.builder()
-                .userId(user.getId()).username(user.getUsername()).email(user.getEmail())
-                .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
-                .lecturerCode(lecturer.getLecturerCode()).departmentId(lecturer.getDepartmentId())
-                .academicTitle(lecturer.getAcademicTitle()).maxReviewLoad(lecturer.getMaxReviewLoad()).build();
+        return lecturerMapper.toResponse(lecturer);
     }
 }

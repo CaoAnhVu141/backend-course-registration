@@ -122,6 +122,4 @@ public class AuthService {
         refreshTokenRepository.save(refreshToken);
         return token;
     }
-
-    private AuthMapper authMapper;
 }

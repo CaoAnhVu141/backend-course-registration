@@ -10,6 +10,7 @@ import modules.students.entity.Student;
 import modules.students.repository.StudentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import modules.students.mapper.StudentMapper;
 
 import java.util.stream.Collectors;
 
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class StudentService {
     private final StudentRepository studentRepository;
     private final UserAccountService userAccountService;
+    private final StudentMapper studentMapper;
 
     @Transactional
     public StudentResponse register(RegisterStudentRequest request) {
@@ -33,10 +35,6 @@ public class StudentService {
                 .className(request.getClassName())
                 .build());
 
-        return StudentResponse.builder()
-                .userId(user.getId()).username(user.getUsername()).email(user.getEmail())
-                .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
-                .studentCode(student.getStudentCode()).departmentId(student.getDepartmentId())
-                .className(student.getClassName()).build();
+        return studentMapper.toResponse(student);
     }
 }

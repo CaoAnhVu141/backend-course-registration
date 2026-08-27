@@ -23,13 +23,10 @@ public class AuthController {
     private final StudentService studentService;
     private final LecturerService lecturerService;
 
-    // @PostMapping("/register")
-    // public ResponseEntity<StudentResponse> registerStudent(@Valid @RequestBody RegisterStudentRequest request) {
-    //     return ResponseEntity.status(HttpStatus.CREATED).body(studentService.register(request));
-    // }
 
     @PostMapping("/register/student")
-    public ResponseEntity<StudentResponse> registerStudentExplicitly(@Valid @RequestBody RegisterStudentRequest request) {
+    public ResponseEntity<StudentResponse> registerStudentExplicitly(
+            @Valid @RequestBody RegisterStudentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(studentService.register(request));
     }
 
@@ -40,7 +37,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        LoginResponse loginResponse = authService.login(loginRequest);
+        LoginResponse loginResponse = authService.loginService(loginRequest);
         return ResponseEntity.ok(loginResponse);
     }
 

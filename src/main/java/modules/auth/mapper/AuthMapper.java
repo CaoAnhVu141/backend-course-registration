@@ -3,6 +3,8 @@ package modules.auth.mapper;
 import org.springframework.stereotype.Component;
 import modules.auth.dto.LoginResponse;
 import modules.auth.entity.User;
+import modules.auth.entity.Role;
+import java.util.stream.Collectors;
 
 @Component
 public class AuthMapper {
@@ -13,7 +15,9 @@ public class AuthMapper {
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(expiresIn)
+                .id(user.getId())
                 .username(user.getUsername())
+                .email(user.getEmail())
                 .roles(user
                         .getRoles()
                         .stream()
