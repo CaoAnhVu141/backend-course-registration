@@ -20,6 +20,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import global.security.JwtService;
 import modules.auth.security.CustomUserDetailsService;
+import modules.auth.exception.InvalidCredentialsException;
+import modules.auth.mapper.AuthMapper;
+
+import org.springframework.security.core.AuthenticationException;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +36,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
+    private final AuthMapper authMapper;
 
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
@@ -64,7 +69,7 @@ public class AuthService {
     }
 
     @Transactional
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse loginService(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
@@ -74,14 +79,8 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = createRefreshToken(user);
 
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(3600L)
-                .username(user.getUsername())
-                .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
-                .build();
+        return authMapper.loginResponseMapper(user, accessToken, refreshToken,
+                jwtService.getAccessTokenExpiration());
     }
 
     @Transactional
@@ -123,4 +122,6 @@ public class AuthService {
         refreshTokenRepository.save(refreshToken);
         return token;
     }
+
+    private AuthMapper authMapper;
 }
