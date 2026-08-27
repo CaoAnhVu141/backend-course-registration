@@ -15,15 +15,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import global.security.JwtService;
 import modules.auth.security.CustomUserDetailsService;
-import modules.auth.exception.InvalidCredentialsException;
 import modules.auth.mapper.AuthMapper;
-
-import org.springframework.security.core.AuthenticationException;
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -71,14 +68,8 @@ public class AuthService {
         refreshToken.setRevoked(true);
         refreshTokenRepository.save(refreshToken);
 
-        return LoginResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
-                .tokenType("Bearer")
-                .expiresIn(3600L)
-                .username(user.getUsername())
-                .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
-                .build();
+        return authMapper.loginResponseMapper(user, newAccessToken, newRefreshToken,
+                jwtService.getAccessTokenExpiration());
     }
 
     private String createRefreshToken(User user) {
@@ -86,7 +77,7 @@ public class AuthService {
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(token)
                 .user(user)
-                .expiryDate(LocalDateTime.now().plusDays(7))
+                .expiryDate(LocalDateTime.now().plus(Duration.ofMillis(jwtService.getRefreshTokenExpiration())))
                 .revoked(false)
                 .build();
         refreshTokenRepository.save(refreshToken);
