@@ -21,6 +21,8 @@ import global.security.JwtService;
 import modules.auth.security.CustomUserDetailsService;
 import modules.auth.mapper.AuthMapper;
 import java.time.Duration;
+import modules.auth.exception.InvalidCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 
 @Service
 @RequiredArgsConstructor
@@ -37,11 +39,16 @@ public class AuthService {
 
     @Transactional
     public LoginResponse loginService(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        } catch (AuthenticationException exception) {
+            throw new InvalidCredentialsException();
+        }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-        User user = userRepository.findByUsername(request.getUsername()).orElseThrow();
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(InvalidCredentialsException::new);
 
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = createRefreshToken(user);

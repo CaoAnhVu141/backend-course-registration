@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import modules.auth.exception.InvalidCredentialsException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -33,7 +34,13 @@ public class GlobalExceptionHandler {
         body.put("timestamp", LocalDateTime.now());
         body.put("status", status.value());
         body.put("message", message);
-        if (details != null) body.put("details", details);
+        if (details != null)
+            body.put("details", details);
         return ResponseEntity.status(status).body(body);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException exception) {
+        return response(HttpStatus.UNAUTHORIZED, exception.getMessage(), null);
     }
 }
