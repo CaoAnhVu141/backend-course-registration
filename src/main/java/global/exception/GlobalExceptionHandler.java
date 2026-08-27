@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import modules.auth.exception.InvalidCredentialsException;
+import modules.auth.exception.InvalidCredentialsException;
+import modules.auth.exception.InvalidTokenException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -41,6 +43,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException exception) {
+        return response(HttpStatus.UNAUTHORIZED, exception.getMessage(), null);
+    }
+    
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidToken(InvalidTokenException exception) {
         return response(HttpStatus.UNAUTHORIZED, exception.getMessage(), null);
     }
 }
