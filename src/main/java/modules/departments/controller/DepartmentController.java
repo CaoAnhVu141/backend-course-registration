@@ -26,4 +26,10 @@ public class DepartmentController {
         DepartmentResponse response = departmentService.createDepartmentService(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    @GetMapping
+    public ResponseEntity getAllDepartmentController() {
+        DepartmentResponse response = departmentService.getAllDepartmentsService();
+        return ResponseEntity.ok(departmentService.getAll());
+    }
 }
