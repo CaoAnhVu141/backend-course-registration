@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import modules.auth.exception.InvalidCredentialsException;
 import modules.auth.exception.InvalidTokenException;
+import modules.departments.exceptions.DepartmentException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -48,5 +49,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidToken(InvalidTokenException exception) {
         return response(HttpStatus.UNAUTHORIZED, exception.getMessage(), null);
+    }
+
+    @ExceptionHandler(DepartmentException.class)
+    public ResponseEntity<Map<String, Object>> handleDepartmentException(DepartmentException exception) {
+        return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
     }
 }

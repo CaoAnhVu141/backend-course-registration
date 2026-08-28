@@ -1,4 +1,4 @@
-package modules.departments.exception;
+package modules.departments.exceptions;
 
 import modules.departments.enums.EnumDepartmentError;
 

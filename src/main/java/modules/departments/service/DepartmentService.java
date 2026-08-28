@@ -9,7 +9,7 @@ import modules.departments.mapper.DepartmentMapper;
 import modules.departments.repository.DepartmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import modules.departments.exception.DepartmentException;
+import modules.departments.exceptions.DepartmentException;
 import modules.departments.enums.EnumDepartmentError;
 import java.util.stream.Collectors;
 import java.util.List;
