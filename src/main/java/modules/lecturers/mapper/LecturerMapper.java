@@ -5,7 +5,6 @@ import modules.lecturers.dto.LecturerResponse;
 import modules.lecturers.entity.Lecturer;
 import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
-import modules.auth.entity.Role;
 
 @Component
 public class LecturerMapper {
