@@ -1,11 +1,13 @@
 package modules.departments.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class DepartmantReponse {
+@Builder
+public class DepartmentResponse {
     private Long departmentId;
     private String name;
 }

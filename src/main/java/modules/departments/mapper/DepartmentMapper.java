@@ -4,6 +4,7 @@ import modules.departments.dto.DepartmentResponse;
 import modules.departments.entity.Department;
 import org.springframework.stereotype.Component;
 
+@Component
 public class DepartmentMapper {
 
     public DepartmentResponse toResponse(Department department) {

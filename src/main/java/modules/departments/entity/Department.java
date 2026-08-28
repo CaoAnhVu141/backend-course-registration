@@ -1,5 +1,8 @@
 package modules.departments.entity;
 
+import jakarta.persistence.*;
+import lombok.*;
+
 @Entity
 @Table(name = "departments")
 @Getter
