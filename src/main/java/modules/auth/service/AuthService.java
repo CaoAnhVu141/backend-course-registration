@@ -38,6 +38,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
     private final AuthMapper authMapper;
+    private final UserAccountService userAccountService;
 
     @Transactional
     public LoginResponse loginService(LoginRequest request) {
@@ -91,5 +92,13 @@ public class AuthService {
                 .build();
         refreshTokenRepository.save(refreshToken);
         return token;
+    }
+
+    // Hàm đăng kí tài khoản Admin
+    @Transactional
+    public RegisterResponse registerAdmin(RegisterRequest request) {
+        User user = userAccountService.create(request.getUsername(), request.getEmail(), request.getPassword(),
+                "ADMIN");
+        return authMapper.registerResponseMapper(user);
     }
 }

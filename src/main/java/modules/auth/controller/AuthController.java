@@ -23,7 +23,6 @@ public class AuthController {
     private final StudentService studentService;
     private final LecturerService lecturerService;
 
-
     @PostMapping("/register/student")
     public ResponseEntity<StudentResponse> registerStudentExplicitly(
             @Valid @RequestBody RegisterStudentRequest request) {
@@ -45,5 +44,12 @@ public class AuthController {
     public ResponseEntity<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
         LoginResponse loginResponse = authService.refreshToken(refreshTokenRequest);
         return ResponseEntity.ok(loginResponse);
+    }
+
+    // Đăng kí tài khoản Admin
+    @PostMapping("/register/admin")
+    public ResponseEntity<RegisterResponse> registerAdmin(@Valid @RequestBody RegisterRequest request) {
+        RegisterResponse registerResponse = authService.registerAdmin(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(registerResponse);
     }
 }
