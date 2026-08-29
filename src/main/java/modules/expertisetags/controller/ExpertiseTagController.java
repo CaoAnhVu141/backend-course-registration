@@ -12,6 +12,8 @@ import org.springframework.security.access.method.P;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import modules.expertisetags.enums.EnumExpertiseTagSuccess;
+import global.response.ApiResponse;
 
 @RestController
 @RequestMapping("/api/expertise-tags")
@@ -22,36 +24,54 @@ public class ExpertiseTagController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<ExpertiseTagResponse> createExpertiseTagController(
+    public ResponseEntity<ApiResponse<ExpertiseTagResponse>> createExpertiseTagController(
             @Valid @RequestBody CreateExpertiseTagRequest request) {
         ExpertiseTagResponse response = expertiseTagService.createExpertiseTagService(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(HttpStatus.CREATED.value(),
+                EnumExpertiseTagSuccess.CREATED.getMessage(), response));
     }
 
     @GetMapping
-    public ResponseEntity<List<ExpertiseTagResponse>> getAllExpertiseTagsController() {
-        return ResponseEntity.ok(expertiseTagService.getAllExpertiseTagsService());
+    public ResponseEntity<ApiResponse<List<ExpertiseTagResponse>>> getAllExpertiseTagsController() {
+        List<ExpertiseTagResponse> response = expertiseTagService.getAllExpertiseTagsService();
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumExpertiseTagSuccess.GET_ALL.getMessage(),
+                        response));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ExpertiseTagResponse> getExpertiseTagByIdController(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ExpertiseTagResponse>> getExpertiseTagByIdController(@PathVariable Long id) {
         ExpertiseTagResponse response = expertiseTagService.getExpertiseTagByIdService(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumExpertiseTagSuccess.GET_DETAIL.getMessage(),
+                        response));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<ExpertiseTagResponse> updateExpertiseTagController(
+    public ResponseEntity<ApiResponse<ExpertiseTagResponse>> updateExpertiseTagController(
             @PathVariable Long id,
             @Valid @RequestBody UpdateExpertiseTagRequest request) {
         ExpertiseTagResponse response = expertiseTagService.updateExpertiseTagService(request, id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumExpertiseTagSuccess.UPDATED.getMessage(),
+                        response));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExpertiseTagController(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteExpertiseTagController(@PathVariable Long id) {
         expertiseTagService.deleteExpertiseTagService(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumExpertiseTagSuccess.DELETED.getMessage(),
+                        null));
     }
 }
