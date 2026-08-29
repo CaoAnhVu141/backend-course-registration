@@ -43,4 +43,39 @@ public class RegistrationPeriodController {
                         response));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<RegistrationPeriodResponse>> getRegistrationPeriodByIdController(
+            @PathVariable Long id) {
+        RegistrationPeriodResponse response = registrationPeriodService.getRegistrationPeriodByIdService(id);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumRegistrationPeriodSuccess.GET_DETAIL.getMessage(),
+                        response));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<RegistrationPeriodResponse>> updateRegistrationPeriodController(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateRegistrationPeriodRequest request) {
+        RegistrationPeriodResponse response = registrationPeriodService.updateRegistrationPeriodService(id, request);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumRegistrationPeriodSuccess.UPDATED.getMessage(),
+                        response));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteRegistrationPeriodController(@PathVariable Long id) {
+        registrationPeriodService.deleteRegistrationPeriodService(id);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumRegistrationPeriodSuccess.DELETED.getMessage(),
+                        null));
+    }
+
 }

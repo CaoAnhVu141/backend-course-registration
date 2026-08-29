@@ -73,6 +73,7 @@ public class RegistrationPeriodService {
                 && registrationPeriodRepository.existsByType(updateRegistrationPeriodRequest.getType())) {
             throw new RegistrationPeriodException(EnumRegistrationPeriodError.REGISTRATION_PERIOD_TYPE_EXISTS);
         }
+        registrationPeriod.setName(updateRegistrationPeriodRequest.getName());
         registrationPeriod.setType(updateRegistrationPeriodRequest.getType());
         registrationPeriod.setLecturerRegistrationStart(updateRegistrationPeriodRequest.getLecturerRegistrationStart());
         registrationPeriod.setLecturerRegistrationEnd(updateRegistrationPeriodRequest.getLecturerRegistrationEnd());

@@ -11,6 +11,7 @@ import modules.auth.exception.InvalidCredentialsException;
 import modules.auth.exception.InvalidTokenException;
 import modules.departments.exceptions.DepartmentException;
 import modules.expertisetags.exception.ExpertiseTagException;
+import modules.registration_period.exception.RegistrationPeriodException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -68,5 +69,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ExpertiseTagException.class)
     public ResponseEntity<Map<String, Object>> handleExpertiseTagException(ExpertiseTagException exception) {
         return response(HttpStatus.NOT_FOUND, exception.getMessage(), null);
+    }
+
+    // RegistrationPeriodException handler
+    @ExceptionHandler(RegistrationPeriodException.class)
+    public ResponseEntity<Map<String, Object>> handleRegistrationPeriodException(
+            RegistrationPeriodException exception) {
+        return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
     }
 }
