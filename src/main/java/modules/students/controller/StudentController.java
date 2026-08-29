@@ -31,7 +31,7 @@ public class StudentController {
                         response));
     }
 
-    @PreAuthorize("hasRole('ADMIN', 'LECTURER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<StudentResponse>>> getAllStudentsController() {
         List<StudentResponse> response = studentService.getAllStudentsService();
@@ -42,7 +42,7 @@ public class StudentController {
                         response));
     }
 
-    @PreAuthorize("hasRole('ADMIN', 'LECTURER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<StudentResponse>> getStudentByIdController(@PathVariable Long userId) {
         StudentResponse response = studentService.getStudentByIdService(userId);

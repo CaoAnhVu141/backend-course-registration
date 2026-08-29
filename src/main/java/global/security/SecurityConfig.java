@@ -56,6 +56,16 @@ public class SecurityConfig {
                                       "message": "%s"
                                     }
                                     """.formatted(EnumAuthError.INVALID_ACCESS_TOKEN.getMessage()));
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("""
+                                                    {
+                                                    "status": 403,
+                                                    "message": "%s"
+                                                    }
+                                    """.formatted(EnumAuthError.FORBIDDEN.getMessage()));
                         }))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
