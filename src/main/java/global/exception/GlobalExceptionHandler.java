@@ -12,6 +12,7 @@ import modules.auth.exception.InvalidTokenException;
 import modules.departments.exceptions.DepartmentException;
 import modules.expertisetags.exception.ExpertiseTagException;
 import modules.registration_period.exception.RegistrationPeriodException;
+import modules.students.exception.StudentException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -76,5 +77,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleRegistrationPeriodException(
             RegistrationPeriodException exception) {
         return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
+    }
+
+    // StudentException handler
+    @ExceptionHandler(StudentException.class)
+    public ResponseEntity<Map<String, Object>> handleStudentException(StudentException exception) {
+        return response(HttpStatus.CONFLICT, exception.getMessage(), null);
     }
 }
