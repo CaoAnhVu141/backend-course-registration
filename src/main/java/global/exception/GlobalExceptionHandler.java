@@ -59,8 +59,14 @@ public class GlobalExceptionHandler {
     }
 
     // ExpertiseTagException handler
+    // @ExceptionHandler(ExpertiseTagException.class)
+    // public ResponseEntity<Map<String, Object>>
+    // handleExpertiseTagException(ExpertiseTagException exception) {
+    // return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
+    // }
+
     @ExceptionHandler(ExpertiseTagException.class)
     public ResponseEntity<Map<String, Object>> handleExpertiseTagException(ExpertiseTagException exception) {
-        return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
+        return response(HttpStatus.NOT_FOUND, exception.getMessage(), null);
     }
 }
