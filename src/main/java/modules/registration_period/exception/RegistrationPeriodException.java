@@ -1,6 +1,6 @@
 package modules.registration_period.exception;
 
-import modules.registrationperiods.enums.EnumRegistrationPeriodError;
+import modules.registration_period.enums.EnumRegistrationPeriodError;
 
 public class RegistrationPeriodException extends RuntimeException {
 

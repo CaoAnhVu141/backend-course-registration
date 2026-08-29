@@ -3,7 +3,7 @@ package modules.registration_period.enums;
 import lombok.Getter;
 
 @Getter
-public class EnumRegistrationPeriodError {
+public enum EnumRegistrationPeriodError {
 
     REGISTRATION_PERIOD_NOT_FOUND("Kỳ đăng ký không tồn tại"),
     REGISTRATION_PERIOD_NAME_EXISTS("Tên kỳ đăng ký đã tồn tại"),

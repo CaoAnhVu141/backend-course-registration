@@ -2,6 +2,7 @@ package modules.registration_period.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "registration_periods")
@@ -38,7 +39,7 @@ public class RegistrationPeriod {
     @Column(name = "defense_date")
     private LocalDateTime defenseDate;
 
-    @Column(name = "status", default = "true")
-    private boolean status;
+    @Column(name = "status")
+    private boolean status = true;
 
 }

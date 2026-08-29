@@ -3,7 +3,7 @@ package modules.registration_period.enums;
 import lombok.Getter;
 
 @Getter
-public class EnumRegistrationPeriodSucess {
+public enum EnumRegistrationPeriodSuccess {
 
     CREATED("Tạo kỳ đăng ký thành công"),
     UPDATED("Cập nhật kỳ đăng ký thành công"),

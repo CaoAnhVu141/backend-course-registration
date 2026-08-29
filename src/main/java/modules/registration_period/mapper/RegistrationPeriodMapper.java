@@ -1,7 +1,7 @@
 package modules.registration_period.mapper;
 
-import modules.registrationperiods.dto.RegistrationPeriodResponse;
-import modules.registrationperiods.entity.RegistrationPeriod;
+import modules.registration_period.dto.RegistrationPeriodResponse;
+import modules.registration_period.entity.RegistrationPeriod;
 import org.springframework.stereotype.Component;
 
 @Component
