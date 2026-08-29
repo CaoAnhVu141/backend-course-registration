@@ -33,4 +33,14 @@ public class RegistrationPeriodController {
                 EnumRegistrationPeriodSuccess.CREATED.getMessage(), response));
     }
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<RegistrationPeriodResponse>>> getAllRegistrationPeriodsController() {
+        List<RegistrationPeriodResponse> response = registrationPeriodService.getAllRegistrationPeriodService();
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumRegistrationPeriodSuccess.GET_ALL.getMessage(),
+                        response));
+    }
+
 }
