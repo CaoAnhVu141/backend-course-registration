@@ -82,6 +82,6 @@ public class GlobalExceptionHandler {
     // StudentException handler
     @ExceptionHandler(StudentException.class)
     public ResponseEntity<Map<String, Object>> handleStudentException(StudentException exception) {
-        return response(HttpStatus.FORBIDDEN, exception.getMessage(), null);
+        return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
     }
 }
