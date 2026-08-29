@@ -81,12 +81,6 @@ public class RegistrationPeriodService {
     }
 
     @Transactional
-    public RegistrationPeriodResponse getRegistrationPeriodByIdService(Long id) {
-        RegistrationPeriod registrationPeriod = findRegistrationPeriodById(id);
-        return registrationPeriodMapper.toResponse(registrationPeriod);
-    }
-
-    @Transactional
     public void deleteRegistrationPeriodService(Long id) {
         RegistrationPeriod registrationPeriod = findRegistrationPeriodById(id);
         registrationPeriodRepository.delete(registrationPeriod);
