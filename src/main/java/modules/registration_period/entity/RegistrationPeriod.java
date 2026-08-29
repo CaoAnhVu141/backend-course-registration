@@ -18,6 +18,9 @@ public class RegistrationPeriod {
     @Column(name = "registration_period_id")
     private Long id;
 
+    @Column(name = "name", nullable = false, length = 255)
+    private String name;
+
     @Column(name = "type", nullable = false, length = 100)
     private String type;
 

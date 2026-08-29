@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class RegistrationPeriodResponse {
 
     private Long id;
+    private String name;
     private String type;
     private LocalDateTime lecturerRegistrationStart;
     private LocalDateTime lecturerRegistrationEnd;

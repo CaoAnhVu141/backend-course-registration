@@ -10,6 +10,7 @@ public class RegistrationPeriodMapper {
     public RegistrationPeriodResponse toResponse(RegistrationPeriod registrationPeriod) {
         return RegistrationPeriodResponse.builder()
                 .id(registrationPeriod.getId())
+                .name(registrationPeriod.getName())
                 .type(registrationPeriod.getType())
                 .lecturerRegistrationStart(registrationPeriod.getLecturerRegistrationStart())
                 .lecturerRegistrationEnd(registrationPeriod.getLecturerRegistrationEnd())

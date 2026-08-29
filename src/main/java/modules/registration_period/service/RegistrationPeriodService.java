@@ -31,8 +31,12 @@ public class RegistrationPeriodService {
         if (registrationPeriodRepository.existsByType(registrationPeriodRequest.getType())) {
             throw new RegistrationPeriodException(EnumRegistrationPeriodError.REGISTRATION_PERIOD_TYPE_EXISTS);
         }
+        if (registrationPeriodRepository.existsByName(registrationPeriodRequest.getName())) {
+            throw new RegistrationPeriodException(EnumRegistrationPeriodError.REGISTRATION_PERIOD_NAME_EXISTS);
+        }
         RegistrationPeriod registrationPeriod = registrationPeriodRepository.save(
                 RegistrationPeriod.builder()
+                        .name(registrationPeriodRequest.getName())
                         .type(registrationPeriodRequest.getType())
                         .lecturerRegistrationStart(registrationPeriodRequest.getLecturerRegistrationStart())
                         .lecturerRegistrationEnd(registrationPeriodRequest.getLecturerRegistrationEnd())

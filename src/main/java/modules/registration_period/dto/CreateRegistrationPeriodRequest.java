@@ -11,6 +11,10 @@ import java.time.LocalDateTime;
 @Setter
 public class CreateRegistrationPeriodRequest {
 
+    @NotBlank(message = "Tên kỳ đăng ký không được để trống")
+    @Size(max = 255, message = "Tên kỳ đăng ký không được vượt quá 255 ký tự")
+    private String name;
+
     @NotBlank(message = "Loại kỳ đăng ký không được để trống")
     @Size(max = 100, message = "Loại kỳ đăng ký không được vượt quá 100 ký tự")
     private String type;

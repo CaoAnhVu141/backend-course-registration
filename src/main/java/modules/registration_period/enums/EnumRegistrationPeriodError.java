@@ -5,6 +5,7 @@ import lombok.Getter;
 @Getter
 public enum EnumRegistrationPeriodError {
 
+    REGISTRATION_PERIOD_NAME_EXISTS("Tên kỳ đăng ký đã tồn tại"),
     REGISTRATION_PERIOD_NOT_FOUND("Kỳ đăng ký không tồn tại"),
     REGISTRATION_PERIOD_TYPE_EXISTS("Loại kỳ đăng ký đã tồn tại"),
     INVALID_LECTURER_REGISTRATION_TIME("Thời gian giảng viên đăng ký không hợp lệ"),

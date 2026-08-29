@@ -5,5 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RegistrationPeriodRepository extends JpaRepository<RegistrationPeriod, Long> {
 
+    boolean existsByName(String name);
+
     boolean existsByType(String type);
 }
