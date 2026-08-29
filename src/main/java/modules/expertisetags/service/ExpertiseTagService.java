@@ -68,6 +68,10 @@ public class ExpertiseTagService {
         return expertiseTagMapper.toResponse(expertiseTag);
     }
 
+    @Transactional
+    public void deleteExpertiseTagService(Long id) {
+    }
+
     private ExpertiseTag findExpertiseTagById(Long id) {
         return expertiseTagRepository.findById(id)
                 .orElseThrow(() -> new ExpertiseTagException(EnumExpertiseTagError.EXPERTISE_TAG_NOT_FOUND));
