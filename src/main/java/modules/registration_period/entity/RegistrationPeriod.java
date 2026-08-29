@@ -14,15 +14,31 @@ public class RegistrationPeriod {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "registration_period_id")
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
+    @Column(name = "type", nullable = false, length = 100)
+    private String type;
 
-    @Column(nullable = false)
-    private String startDate;
+    @Column(name = "lecturer_registration_start")
+    private LocalDateTime lecturerRegistrationStart;
 
-    @Column(nullable = false)
-    private String endDate;
+    @Column(name = "lecturer_registration_end")
+    private LocalDateTime lecturerRegistrationEnd;
+
+    @Column(name = "student_registration_start")
+    private LocalDateTime studentRegistrationStart;
+
+    @Column(name = "student_registration_end")
+    private LocalDateTime studentRegistrationEnd;
+
+    @Column(name = "reviewer_score_deadline", nullable = true)
+    private LocalDateTime reviewerScoreDeadline;
+
+    @Column(name = "defense_date")
+    private LocalDateTime defenseDate;
+
+    @Column(name = "status", default = "true")
+    private boolean status;
 
 }
