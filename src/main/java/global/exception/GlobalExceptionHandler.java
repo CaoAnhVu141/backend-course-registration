@@ -10,6 +10,7 @@ import java.util.Map;
 import modules.auth.exception.InvalidCredentialsException;
 import modules.auth.exception.InvalidTokenException;
 import modules.departments.exceptions.DepartmentException;
+import modules.expertisetags.exception.ExpertiseTagException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -51,8 +52,15 @@ public class GlobalExceptionHandler {
         return response(HttpStatus.UNAUTHORIZED, exception.getMessage(), null);
     }
 
+    // DepartmentException handler
     @ExceptionHandler(DepartmentException.class)
     public ResponseEntity<Map<String, Object>> handleDepartmentException(DepartmentException exception) {
+        return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
+    }
+
+    // ExpertiseTagException handler
+    @ExceptionHandler(ExpertiseTagException.class)
+    public ResponseEntity<Map<String, Object>> handleExpertiseTagException(ExpertiseTagException exception) {
         return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
     }
 }

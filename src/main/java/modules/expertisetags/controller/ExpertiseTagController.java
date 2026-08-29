@@ -8,6 +8,7 @@ import modules.expertisetags.dto.UpdateExpertiseTagRequest;
 import modules.expertisetags.service.ExpertiseTagService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.method.P;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -30,5 +31,27 @@ public class ExpertiseTagController {
     @GetMapping
     public ResponseEntity<List<ExpertiseTagResponse>> getAllExpertiseTagsController() {
         return ResponseEntity.ok(expertiseTagService.getAllExpertiseTagsService());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ExpertiseTagResponse> getExpertiseTagByIdController(@PathVariable Long id) {
+        ExpertiseTagResponse response = expertiseTagService.getExpertiseTagByIdService(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<ExpertiseTagResponse> updateExpertiseTagController(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateExpertiseTagRequest request) {
+        ExpertiseTagResponse response = expertiseTagService.updateExpertiseTagService(request, id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteExpertiseTagController(@PathVariable Long id) {
+        expertiseTagService.deleteExpertiseTagService(id);
+        return ResponseEntity.noContent().build();
     }
 }
