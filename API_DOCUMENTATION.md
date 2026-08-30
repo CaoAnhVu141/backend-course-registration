@@ -79,9 +79,12 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
   "lecturerCode": "GV001",
   "departmentId": 1,
   "academicTitle": "ThS",
-  "maxReviewLoad": 10
+  "maxReviewLoad": 10,
+  "expertiseTagIds": [1, 2, 3]
 }
 ```
+- **Giải thích field:**
+  - `expertiseTagIds`: danh sách ID chuyên môn (expertise tag) của giảng viên — **bắt buộc**, không được để trống
 - **Response (201):** `LecturerResponse`
 
 ## 1.3 Đăng ký Admin
@@ -213,6 +216,11 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | Method | Endpoint | Role | Mô tả |
 |--------|----------|------|-------|
 | POST | `/api/lecturers/register` | Công khai | Đăng ký giảng viên |
+| GET | `/api/lecturers` | ADMIN | Danh sách giảng viên |
+| GET | `/api/lecturers/{userId}` | ADMIN | Chi tiết giảng viên theo userId |
+| GET | `/api/lecturers/me` | LECTURER | Hồ sơ của giảng viên đang đăng nhập |
+| PUT | `/api/lecturers/{userId}` | ADMIN | Cập nhật giảng viên |
+| DELETE | `/api/lecturers/{userId}` | ADMIN | Xóa giảng viên |
 
 ## 3.1 Đăng ký giảng viên
 - **`POST /api/lecturers/register`** — Công khai
@@ -225,12 +233,49 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
   "lecturerCode": "GV001",
   "departmentId": 1,
   "academicTitle": "ThS",
-  "maxReviewLoad": 10
+  "maxReviewLoad": 10,
+  "expertiseTagIds": [1, 2, 3]
 }
 ```
+- **Giải thích field:**
+  - `expertiseTagIds`: danh sách ID chuyên môn của giảng viên — **bắt buộc**, không được để trống
 - **Response (201):** `LecturerResponse`
 
-> ⚠️ **Lưu ý:** Module giảng viên hiện mới chỉ có endpoint đăng ký. Các endpoint `GET /api/lecturers`, `GET /api/lecturers/{userId}`, `GET /api/lecturers/me`, `PUT`, `DELETE` **đang được phát triển** (service đã có sẵn `getAllLecturerService`, `getLecturerByIdService`, `getMyProfileService`, `updateLecturerService` nhưng controller chưa expose).
+## 3.2 Danh sách giảng viên
+- **`GET /api/lecturers`** — ADMIN
+- **Response (200):** `ApiResponse<List<LecturerResponse>>`
+
+## 3.3 Chi tiết giảng viên
+- **`GET /api/lecturers/{userId}`** — ADMIN
+- **Path param:** `userId` (Long)
+- **Response (200):** `ApiResponse<LecturerResponse>`
+
+## 3.4 Hồ sơ của tôi (My Profile)
+- **`GET /api/lecturers/me`** — LECTURER
+- **Không cần truyền tham số** — server tự lấy username từ token đăng nhập
+- **Response (200):** `ApiResponse<LecturerResponse>`
+
+## 3.5 Cập nhật giảng viên
+- **`PUT /api/lecturers/{userId}`** — ADMIN
+- **Path param:** `userId` (Long)
+- **Body:**
+```json
+{
+  "lecturerCode": "GV002",
+  "departmentId": 2,
+  "academicTitle": "TS",
+  "maxReviewLoad": 12,
+  "expertiseTagIds": [2, 4]
+}
+```
+- **Giải thích field:**
+  - `expertiseTagIds`: danh sách ID chuyên môn mới — sẽ **thay thế toàn bộ** danh sách chuyên môn cũ của giảng viên
+- **Response (200):** `ApiResponse<LecturerResponse>`
+
+## 3.6 Xóa giảng viên
+- **`DELETE /api/lecturers/{userId}`** — ADMIN
+- **Path param:** `userId` (Long)
+- **Response (200):** `ApiResponse<Void>` (`data` = null)
 
 ## 📄 Cấu trúc `LecturerResponse`
 ```json
@@ -242,9 +287,12 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
   "lecturerCode": "GV001",
   "departmentId": 1,
   "academicTitle": "ThS",
-  "maxReviewLoad": 10
+  "maxReviewLoad": 10,
+  "expertiseTagIds": [1, 2, 3]
 }
 ```
+- **Giải thích field:**
+  - `expertiseTagIds`: danh sách ID chuyên môn của giảng viên (lấy từ bảng phụ `lecturer_expertise`)
 
 ---
 
@@ -439,7 +487,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | Đăng ký Admin | `POST /api/auth/register/admin` | Public |
 | Refresh token | `POST /api/auth/refresh-token` | Public |
 | CRUD Sinh viên | `/api/students` | ADMIN / LECTURER / STUDENT |
-| CRUD Giảng viên | `/api/lecturers` | *(đang phát triển)* |
+| CRUD Giảng viên | `/api/lecturers` | ADMIN / LECTURER |
 | CRUD Khoa | `/api/departments` | ADMIN |
 | CRUD Chuyên môn | `/api/expertise-tags` | ADMIN |
 | CRUD Kỳ đăng ký | `/api/registration-periods` | ADMIN |
