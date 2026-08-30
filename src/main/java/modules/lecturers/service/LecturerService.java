@@ -1,7 +1,6 @@
 package modules.lecturers.service;
 
 import lombok.RequiredArgsConstructor;
-import modules.auth.entity.Role;
 import modules.auth.entity.User;
 import modules.auth.service.UserAccountService;
 import modules.lecturers.dto.*;
@@ -86,6 +85,12 @@ public class LecturerService {
         lecturer.setMaxReviewLoad(updateLecturerRequest.getMaxReviewLoad());
 
         return lecturerMapper.toResponse(lecturer);
+    }
+
+    @Transactional
+    public void deleteLecturerService(Long userId) {
+        Lecturer lecturer = findLecturerById(userId);
+        lecturer.getUser().setStatus(false);
     }
 
     // function helper

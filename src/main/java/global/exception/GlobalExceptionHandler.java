@@ -13,6 +13,7 @@ import modules.departments.exceptions.DepartmentException;
 import modules.expertisetags.exception.ExpertiseTagException;
 import modules.registration_period.exception.RegistrationPeriodException;
 import modules.students.exception.StudentException;
+import modules.lecturers.exception.LecturerException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -82,6 +83,12 @@ public class GlobalExceptionHandler {
     // StudentException handler
     @ExceptionHandler(StudentException.class)
     public ResponseEntity<Map<String, Object>> handleStudentException(StudentException exception) {
+        return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
+    }
+
+    // LecturerException handler
+    @ExceptionHandler(LecturerException.class)
+    public ResponseEntity<Map<String, Object>> handleLecturerException(LecturerException exception) {
         return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
     }
 }
