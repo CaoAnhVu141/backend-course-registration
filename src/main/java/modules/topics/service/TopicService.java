@@ -2,18 +2,25 @@ package modules.topics.service;
 
 import org.springframework.stereotype.Service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import modules.departments.repository.DepartmentRepository;
 import modules.lecturers.entity.Lecturer;
 import modules.lecturers.repository.LecturerRepository;
 import modules.registration_period.repository.RegistrationPeriodRepository;
+import modules.topics.dto.CreateTopicRequest;
+import modules.topics.dto.TopicResponse;
+import modules.topics.dto.UpdateTopicRequest;
+import modules.topics.entity.Topic;
 import modules.topics.enums.TopicStatus;
 import modules.topics.mapper.TopicMapper;
 import modules.topics.repository.TopicRepository;
 import modules.topics.repository.TopicSupervisorRepository;
 
-import java.beans.Transient;
+import modules.topics.entity.TopicSupervisor;
+import modules.topics.entity.TopicSupervisorId;
+import modules.topics.enums.EnumTopicError;
+import modules.topics.exception.TopicException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,15 +43,17 @@ public class TopicService {
         Lecturer lecturer = lecturerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new TopicException(EnumTopicError.LECTURER_NOT_FOUND));
 
-        Topic topic = topicRepository.save(topicMapper.toEntity(request)
-                .title(request.getTitle())
-                .requirements(request.getRequirements())
-                .departmentId(request.getDepartmentId())
-                .registrationPeriodId(request.getRegistrationPeriodId())
-                .proposedBy(username)
-                .status(TopicStatus.PENDING)
-                .build());
-        return topicMapper.toResponse(topic);
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .title(request.getTitle())
+                        .requirements(request.getRequirements())
+                        .departmentId(request.getDepartmentId())
+                        .registrationPeriodId(request.getRegistrationPeriodId())
+                        .proposedBy(username)
+                        .status(TopicStatus.PENDING)
+                        .build());
+        saveTopicSupervisor(topic, lecturer);
+        return topicMapper.toResponse(topic, Set.of(lecturer.getUserId()));
     }
 
     @Transactional(readOnly = true)
@@ -73,14 +82,66 @@ public class TopicService {
 
     // @dành cho giảng viên
     @Transactional(readOnly = true)
-    public TopicResponse getMyTopicService(String username) {
-        Lecturer lecturer = lecturerRepository.findByUserUsername(username).empty()
+    public List<TopicResponse> getMyTopicService(String username) {
+        Lecturer lecturer = lecturerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new TopicException(EnumTopicError.LECTURER_NOT_FOUND));
         return topicSupervisorRepository.findAllByLecturerUserId(lecturer.getUserId())
                 .stream()
                 .map(TopicSupervisor::getTopic)
                 .map(topic -> topicMapper.toResponse(topic, getSupervisorIds(topic.getId())))
                 .toList();
+    }
+
+    @Transactional
+    public TopicResponse updateTopicService(Long topicId, UpdateTopicRequest updateTopicRequest) {
+        validateReferences(updateTopicRequest.getDepartmentId(), updateTopicRequest.getRegistrationPeriodId());
+        Topic topic = findTopicById(topicId);
+        if (topic.getStatus() == TopicStatus.PUBLISHED) {
+            throw new TopicException(EnumTopicError.TOPIC_ALREADY_PUBLISHED);
+        }
+        topic.setTitle(updateTopicRequest.getTitle());
+        topic.setRequirements(updateTopicRequest.getRequirements());
+        topic.setDepartmentId(updateTopicRequest.getDepartmentId());
+        topic.setRegistrationPeriodId(updateTopicRequest.getRegistrationPeriodId());
+        return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
+    }
+
+    @Transactional
+    public void deleteTopicService(Long topicId) {
+        Topic topic = findTopicById(topicId);
+        if (topic.getStatus() == TopicStatus.PUBLISHED) {
+            throw new TopicException(EnumTopicError.TOPIC_ALREADY_PUBLISHED);
+        }
+        topicSupervisorRepository.deleteAllByTopicId(topicId);
+        topicRepository.delete(topic);
+    }
+
+    @Transactional
+    public TopicResponse approveTopicService(Long topicId) {
+        Topic topic = findTopicById(topicId);
+        if (topic.getStatus() == TopicStatus.REJECTED) {
+            throw new TopicException(EnumTopicError.TOPIC_ALREADY_REJECTED);
+        }
+        topic.setStatus(TopicStatus.APPROVED);
+        return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
+    }
+
+    @Transactional
+    public TopicResponse publishTopicService(Long topicId) {
+        Topic topic = findTopicById(topicId);
+        if (topic.getStatus() != TopicStatus.APPROVED) {
+            throw new TopicException(EnumTopicError.INVALID_TOPIC_STATUS);
+        }
+        topic.setStatus(TopicStatus.PUBLISHED);
+        return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
+    }
+
+    @Transactional
+    public TopicResponse rejectTopicService(Long id) {
+        Topic topic = findTopicById(id);
+        topic.setStatus(TopicStatus.REJECTED);
+
+        return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
     }
 
     // function helper
