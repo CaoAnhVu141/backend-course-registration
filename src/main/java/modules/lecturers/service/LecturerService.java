@@ -14,6 +14,15 @@ import modules.departments.repository.DepartmentRepository;
 import modules.lecturers.enums.EnumLecturerError;
 import modules.lecturers.exception.LecturerException;
 import java.util.List;
+import modules.expertisetags.entity.ExpertiseTag;
+import modules.expertisetags.enums.EnumExpertiseTagError;
+import modules.expertisetags.exception.ExpertiseTagException;
+import modules.expertisetags.repository.ExpertiseTagRepository;
+import modules.lecturers.entity.LecturerExpertise;
+import modules.lecturers.entity.LecturerExpertiseId;
+import modules.lecturers.repository.LecturerExpertiseRepository;
+
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +31,8 @@ public class LecturerService {
     private final UserAccountService userAccountService;
     private final LecturerMapper lecturerMapper;
     private final DepartmentRepository departmentRepository;
+    private final ExpertiseTagRepository expertiseTagRepository;
+    private final LecturerExpertiseRepository lecturerExpertiseRepository;
 
     @Transactional
     public LecturerResponse register(RegisterLecturerRequest request) {
@@ -42,28 +53,29 @@ public class LecturerService {
                 .academicTitle(request.getAcademicTitle())
                 .maxReviewLoad(request.getMaxReviewLoad())
                 .build());
+        saveLecturerExpertiseTags(lecturer, request.getExpertiseTagIds());
 
-        return lecturerMapper.toResponse(lecturer);
+        return lecturerMapper.toResponse(lecturer, getExpertiseTagIds(lecturer.getUserId()));
     }
 
     @Transactional(readOnly = true)
     public List<LecturerResponse> getAllLecturerService() {
         return lecturerRepository.findAll().stream()
-                .map(lecturerMapper::toResponse)
+                .map(lecturer -> lecturerMapper.toResponse(lecturer, getExpertiseTagIds(lecturer.getUserId())))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public LecturerResponse getLecturerByIdService(Long userId) {
         Lecturer lecturer = findLecturerById(userId);
-        return lecturerMapper.toResponse(lecturer);
+        return lecturerMapper.toResponse(lecturer, getExpertiseTagIds(lecturer.getUserId()));
     }
 
     @Transactional(readOnly = true)
     public LecturerResponse getMyProfileService(String username) {
         Lecturer lecturer = lecturerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new LecturerException(EnumLecturerError.LECTURER_NOT_FOUND));
-        return lecturerMapper.toResponse(lecturer);
+        return lecturerMapper.toResponse(lecturer, getExpertiseTagIds(lecturer.getUserId()));
     }
 
     @Transactional
@@ -83,8 +95,9 @@ public class LecturerService {
         lecturer.setDepartmentId(updateLecturerRequest.getDepartmentId());
         lecturer.setAcademicTitle(updateLecturerRequest.getAcademicTitle());
         lecturer.setMaxReviewLoad(updateLecturerRequest.getMaxReviewLoad());
+        updateLecturerExpertiseTags(lecturer, updateLecturerRequest.getExpertiseTagIds());
 
-        return lecturerMapper.toResponse(lecturer);
+        return lecturerMapper.toResponse(lecturer, getExpertiseTagIds(lecturer.getUserId()));
     }
 
     @Transactional
@@ -97,5 +110,42 @@ public class LecturerService {
     private Lecturer findLecturerById(Long userId) {
         return lecturerRepository.findById(userId)
                 .orElseThrow(() -> new LecturerException(EnumLecturerError.LECTURER_NOT_FOUND));
+    }
+
+    private void saveLecturerExpertiseTags(Lecturer lecturer, Set<Long> expertiseTagIds) {
+        if (expertiseTagIds == null || expertiseTagIds.isEmpty()) {
+            return;
+        }
+
+        Set<LecturerExpertise> lecturerExpertises = expertiseTagIds.stream()
+                .map(expertiseTagId -> {
+                    ExpertiseTag expertiseTag = expertiseTagRepository.findById(expertiseTagId)
+                            .orElseThrow(() -> new ExpertiseTagException(
+                                    EnumExpertiseTagError.EXPERTISE_TAG_NOT_FOUND));
+
+                    return LecturerExpertise.builder()
+                            .id(LecturerExpertiseId.builder()
+                                    .userId(lecturer.getUserId())
+                                    .expertiseTagId(expertiseTag.getId())
+                                    .build())
+                            .lecturer(lecturer)
+                            .expertiseTag(expertiseTag)
+                            .build();
+                })
+                .collect(Collectors.toSet());
+
+        lecturerExpertiseRepository.saveAll(lecturerExpertises);
+    }
+
+    private void updateLecturerExpertiseTags(Lecturer lecturer, Set<Long> expertiseTagIds) {
+        lecturerExpertiseRepository.deleteAllByLecturerUserId(lecturer.getUserId());
+        saveLecturerExpertiseTags(lecturer, expertiseTagIds);
+    }
+
+    private Set<Long> getExpertiseTagIds(Long lecturerUserId) {
+        return lecturerExpertiseRepository.findAllByLecturerUserId(lecturerUserId)
+                .stream()
+                .map(lecturerExpertise -> lecturerExpertise.getExpertiseTag().getId())
+                .collect(Collectors.toSet());
     }
 }

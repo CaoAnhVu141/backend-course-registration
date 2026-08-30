@@ -7,6 +7,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -26,4 +27,6 @@ public class UpdateLecturerRequest {
     @NotNull(message = "Số lượng phản biện tối đa không được để trống")
     @PositiveOrZero(message = "Số lượng phản biện tối đa không hợp lệ")
     private Integer maxReviewLoad;
+
+    private Set<Long> expertiseTagIds;
 }

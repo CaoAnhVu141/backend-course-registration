@@ -3,7 +3,11 @@ package modules.lecturers.dto;
 import lombok.*;
 import java.util.Set;
 
-@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class LecturerResponse {
     private Long userId;
     private String username;
@@ -13,4 +17,5 @@ public class LecturerResponse {
     private Long departmentId;
     private String academicTitle;
     private Integer maxReviewLoad;
+    private Set<Long> expertiseTagIds;
 }

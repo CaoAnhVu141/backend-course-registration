@@ -5,11 +5,13 @@ import modules.lecturers.dto.LecturerResponse;
 import modules.lecturers.entity.Lecturer;
 import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.Set;
 
 @Component
 public class LecturerMapper {
 
-    public LecturerResponse toResponse(Lecturer lecturer) {
+    public LecturerResponse toResponse(Lecturer lecturer, Set<Long> expertiseTagIds) {
         return LecturerResponse.builder()
                 .userId(lecturer.getUser().getId())
                 .username(lecturer.getUser().getUsername())
@@ -24,6 +26,7 @@ public class LecturerMapper {
                 .departmentId(lecturer.getDepartmentId())
                 .academicTitle(lecturer.getAcademicTitle())
                 .maxReviewLoad(lecturer.getMaxReviewLoad())
+                .expertiseTagIds(expertiseTagIds)
                 .build();
     }
 }
