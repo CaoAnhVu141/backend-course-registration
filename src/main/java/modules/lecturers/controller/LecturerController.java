@@ -10,6 +10,7 @@ import global.response.ApiResponse;
 import modules.lecturers.enums.EnumLecturerSuccess;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import global.security.PermissionConstants;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class LecturerController {
                         response));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize(PermissionConstants.HAS_ROLE_ADMIN)
     @GetMapping
     public ResponseEntity<ApiResponse<List<LecturerResponse>>> getAllLecturerController() {
         List<LecturerResponse> response = lecturerService.getAllLecturerService();
@@ -42,7 +43,7 @@ public class LecturerController {
                         response));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize(PermissionConstants.HAS_ROLE_ADMIN)
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<LecturerResponse>> getLecturerByIdController(@PathVariable Long userId) {
         LecturerResponse response = lecturerService.getLecturerByIdService(userId);
@@ -54,7 +55,7 @@ public class LecturerController {
                         response));
     }
 
-    @PreAuthorize("hasRole('LECTURER')")
+    @PreAuthorize(PermissionConstants.HAS_ROLE_LECTURER)
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<LecturerResponse>> getMyProfileController(Authentication authentication) {
         LecturerResponse response = lecturerService.getMyProfileService(authentication.getName());
@@ -66,7 +67,7 @@ public class LecturerController {
                         response));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize(PermissionConstants.HAS_ROLE_ADMIN)
     @PutMapping("/{userId}")
     public ResponseEntity<ApiResponse<LecturerResponse>> updateLecturerController(
             @PathVariable Long userId,
@@ -80,7 +81,7 @@ public class LecturerController {
                         response));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize(PermissionConstants.HAS_ROLE_ADMIN)
     @DeleteMapping("/{userId}")
     public ResponseEntity<ApiResponse<Void>> deleteLecturerController(@PathVariable Long userId) {
         lecturerService.deleteLecturerService(userId);
