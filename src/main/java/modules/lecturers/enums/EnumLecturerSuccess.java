@@ -1,9 +1,9 @@
-package modules.lecturers.entity;
+package modules.lecturers.enums;
 
 import lombok.Getter;
 
 @Getter
-public class EnumLecturerSuccess {
+public enum EnumLecturerSuccess {
 
     CREATED("Tạo giảng viên thành công"),
     UPDATED("Cập nhật giảng viên thành công"),

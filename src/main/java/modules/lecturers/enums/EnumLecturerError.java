@@ -1,9 +1,9 @@
-package modules.lecturers.entity;
+package modules.lecturers.enums;
 
 import lombok.Getter;
 
 @Getter
-public class EnumLecturerError {
+public enum EnumLecturerError {
 
     LECTURER_NOT_FOUND("Giảng viên không tồn tại"),
     LECTURER_CODE_EXISTS("Mã giảng viên đã tồn tại"),
