@@ -1,5 +1,10 @@
 package modules.topics.exception;
 
-public class TopicException {
-    
+import modules.topics.enums.EnumTopicError;
+
+public class TopicException extends RuntimeException {
+
+    public TopicException(EnumTopicError error) {
+        super(error.getMessage());
+    }
 }
