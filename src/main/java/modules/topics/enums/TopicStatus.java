@@ -1,5 +1,9 @@
 package modules.topics.enums;
 
-public class TopicStatus {
-    
+public enum TopicStatus {
+    PENDING,
+    APPROVED,
+    REJECTED,
+    PUBLISHED,
+    CLOSED
 }
