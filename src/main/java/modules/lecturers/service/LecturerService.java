@@ -46,4 +46,51 @@ public class LecturerService {
 
         return lecturerMapper.toResponse(lecturer);
     }
+
+    @Transactional(readOnly = true)
+    public List<LecturerResponse> getAllLecturerService() {
+        return lecturerRepository.findAll().stream()
+                .map(lecturerMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public LecturerResponse getLecturerByIdService(Long userId) {
+        Lecturer lecturer = findLecturerById(userId);
+        return lecturerMapper.toResponse(lecturer);
+    }
+
+    @Transactional(readOnly = true)
+    public LecturerResponse getMyProfileService(String username) {
+        Lecturer lecturer = lecturerRepository.findByUserUsername(username)
+                .orElseThrow(() -> new LecturerException(EnumLecturerError.LECTURER_NOT_FOUND));
+        return lecturerMapper.toResponse(lecturer);
+    }
+
+    @Transactional
+    public LecturerResponse updateLecturerService(Long userId, UpdateLecturerRequest updateLecturerRequest) {
+        Lecturer lecturer = findLecturerById(userId);
+
+        if (!lecturer.getLecturerCode().equals(updateLecturerRequest.getLecturerCode())
+                && lecturerRepository.existsByLecturerCode(updateLecturerRequest.getLecturerCode())) {
+            throw new LecturerException(EnumLecturerError.LECTURER_CODE_EXISTS);
+        }
+
+        if (!departmentRepository.existsById(updateLecturerRequest.getDepartmentId())) {
+            throw new LecturerException(EnumLecturerError.DEPARTMENT_NOT_FOUND);
+        }
+
+        lecturer.setLecturerCode(updateLecturerRequest.getLecturerCode());
+        lecturer.setDepartmentId(updateLecturerRequest.getDepartmentId());
+        lecturer.setAcademicTitle(updateLecturerRequest.getAcademicTitle());
+        lecturer.setMaxReviewLoad(updateLecturerRequest.getMaxReviewLoad());
+
+        return lecturerMapper.toResponse(lecturer);
+    }
+
+    // function helper
+    private Lecturer findLecturerById(Long userId) {
+        return lecturerRepository.findById(userId)
+                .orElseThrow(() -> new LecturerException(EnumLecturerError.LECTURER_NOT_FOUND));
+    }
 }
