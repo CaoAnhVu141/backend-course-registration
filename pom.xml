@@ -108,6 +108,16 @@
                         </exclude>
                     </excludes>
                 </configuration>
+                <executions>
+                    <!-- Tự động clean trước khi chạy để tránh lỗi NoClassDefFoundError do build cũ -->
+                    <execution>
+                        <id>clean-before-run</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
                 <!-- maven-compiler-plugin với Lombok annotation processor -->
             <plugin>
