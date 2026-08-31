@@ -12,6 +12,7 @@ import modules.student_group.dto.CreateStudentGroupRequest;
 import modules.student_group.entity.GroupMember;
 import modules.student_group.entity.StudentGroup;
 import modules.student_group.enums.EnumStudentGroupError;
+import modules.student_group.enums.GroupMemberRole;
 import modules.student_group.exception.StudentGroupException;
 import modules.student_group.mapper.StudentGroupMapper;
 import modules.student_group.repository.GroupMemberRepository;
