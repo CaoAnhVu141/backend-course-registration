@@ -1,5 +1,9 @@
 package modules.students.exception;
 
-public class StudentGroupException {
-    
+import modules.student_group.enums.EnumStudentGroupError;
+
+public class StudentGroupException extends RuntimeException {
+    public StudentGroupException(EnumStudentGroupError error) {
+        super(error.getMessage());
+    }
 }
