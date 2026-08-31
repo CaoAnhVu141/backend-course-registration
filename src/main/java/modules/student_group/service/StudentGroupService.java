@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import modules.registration_period.repository.RegistrationPeriodRepository;
 import modules.student_group.dto.CreateStudentGroupRequest;
@@ -28,62 +28,96 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class StudentGroupService {
 
-    private final StudentGroupRepository studentGroupRepository;
-    private final GroupMemberRepository groupMemberRepository;
-    private final StudentGroupMapper studentGroupMapper;
-    private final RegistrationPeriodRepository registrationPeriodRepository;
-    private final StudentRepository studentRepository;
+        private final StudentGroupRepository studentGroupRepository;
+        private final GroupMemberRepository groupMemberRepository;
+        private final StudentGroupMapper studentGroupMapper;
+        private final RegistrationPeriodRepository registrationPeriodRepository;
+        private final StudentRepository studentRepository;
 
-    @Transactional
-    public StudentGroupResponse createStudentGroupService(CreateStudentGroupRequest createStudentGroupRequest,
-            String username) {
-        if (!registrationPeriodRepository.existsById(createStudentGroupRequest.getRegistrationPeriodId())) {
-            throw new StudentGroupException(EnumStudentGroupError.REGISTRATION_PERIOD_NOT_FOUND);
+        @Transactional
+        public StudentGroupResponse createStudentGroupService(CreateStudentGroupRequest createStudentGroupRequest,
+                        String username) {
+                if (!registrationPeriodRepository.existsById(createStudentGroupRequest.getRegistrationPeriodId())) {
+                        throw new StudentGroupException(EnumStudentGroupError.REGISTRATION_PERIOD_NOT_FOUND);
+                }
+                Student leaderStudent = studentRepository.findByUserUsername(username)
+                                .orElseThrow(() -> new StudentGroupException(EnumStudentGroupError.STUDENT_NOT_FOUND));
+                Set<Long> memberUserIds = new HashSet<>(createStudentGroupRequest.getMemberUserIds());
+                memberUserIds.add(leaderStudent.getUserId());
+
+                for (Long userId : memberUserIds) {
+                        if (!studentRepository.existsById(userId)) {
+                                throw new StudentGroupException(EnumStudentGroupError.STUDENT_NOT_FOUND);
+                        }
+                        if (groupMemberRepository.existsByRegistrationPeriodIdAndStudentUserId(
+                                        createStudentGroupRequest.getRegistrationPeriodId(), userId)) {
+                                throw new StudentGroupException(EnumStudentGroupError.STUDENT_ALREADY_IN_GROUP);
+                        }
+                }
+
+                StudentGroup studentGroup = studentGroupRepository.save(
+                                StudentGroup.builder()
+                                                .registrationPeriodId(
+                                                                createStudentGroupRequest.getRegistrationPeriodId())
+                                                .name(createStudentGroupRequest.getName())
+                                                .status(true)
+                                                .createBy(username)
+                                                .build());
+
+                List<GroupMember> members = memberUserIds.stream().map(userId -> {
+                        Student student = studentRepository.findById(userId)
+                                        .orElseThrow(() -> new StudentGroupException(
+                                                        EnumStudentGroupError.STUDENT_NOT_FOUND));
+
+                        return GroupMember.builder()
+                                        .studentGroup(studentGroup)
+                                        .registrationPeriodId(createStudentGroupRequest.getRegistrationPeriodId())
+                                        .student(student)
+                                        .role(userId.equals(leaderStudent.getUserId()) ? GroupMemberRole.LEADER
+                                                        : GroupMemberRole.MEMBER)
+                                        .joinedAt(LocalDateTime.now())
+                                        .build();
+                }).toList();
+                groupMemberRepository.saveAll(members);
+                return studentGroupMapper.toResponse(studentGroup, members);
+
         }
-        Student leaderStudent = studentRepository.findByUserUsername(username)
-                .orElseThrow(() -> new StudentGroupException(EnumStudentGroupError.STUDENT_NOT_FOUND));
-        Set<Long> memberUserIds = new HashSet<>(createStudentGroupRequest.getMemberUserIds());
-        memberUserIds.add(leaderStudent.getUserId());
 
-        for (Long userId : memberUserIds) {
-            if (!studentRepository.existsById(userId)) {
-                throw new StudentGroupException(EnumStudentGroupError.STUDENT_NOT_FOUND);
-            }
-            if (groupMemberRepository.existsByRegistrationPeriodIdAndStudentUserId(
-                    createStudentGroupRequest.getRegistrationPeriodId(), userId)) {
-                throw new StudentGroupException(EnumStudentGroupError.STUDENT_ALREADY_IN_GROUP);
-            }
+        @Transactional(readOnly = true)
+        public List<StudentGroupResponse> getAllStudentGroupService() {
+                return studentGroupRepository.findAll().stream()
+                                .map(studentGroup -> studentGroupMapper.toResponse(studentGroup,
+                                                groupMemberRepository.findAllByStudentGroupId(studentGroup.getId())))
+                                .toList();
         }
 
-        StudentGroup studentGroup = studentGroupRepository.save(
-                StudentGroup.builder()
-                        .registrationPeriodId(createStudentGroupRequest.getRegistrationPeriodId())
-                        .name(createStudentGroupRequest.getName())
-                        .status(true)
-                        .createBy(username)
-                        .build());
+        // Lấy danh sách sinh viên theo nhóm đăng kí
+        @Transactional(readOnly = true)
+        public List<StudentGroupResponse> getAllByRegistrationPeriodService(Long registrationPeriodId) {
+                return studentGroupRepository.findAllByRegistrationPeriodId(registrationPeriodId).stream()
+                                .map(studentGroup -> studentGroupMapper.toResponse(studentGroup,
+                                                groupMemberRepository.findAllByStudentGroupId(studentGroup.getId())))
+                                .toList();
+        }
 
-        List<GroupMember> members = memberUserIds.stream().map(userId -> {
-            Student student = studentRepository.findById(userId)
-                    .orElseThrow(() -> new StudentGroupException(EnumStudentGroupError.STUDENT_NOT_FOUND));
+        @Transactional(readOnly = true)
+        public StudentGroupResponse getStudentGroupByIdService(Long id) {
+                StudentGroup studentGroup = findStudentGroupById(id);
+                return studentGroupMapper.toResponse(studentGroup,
+                                groupMemberRepository.findAllByStudentGroupId(studentGroup.getId()));
+        }
 
-            return GroupMember.builder()
-                    .studentGroup(studentGroup)
-                    .registrationPeriodId(createStudentGroupRequest.getRegistrationPeriodId())
-                    .student(student)
-                    .role(userId.equals(leaderStudent.getUserId()) ? GroupMemberRole.LEADER
-                            : GroupMemberRole.MEMBER)
-                    .joinedAt(LocalDateTime.now())
-                    .build();
-        }).toList();
-        groupMemberRepository.saveAll(members);
-        return studentGroupMapper.toResponse(studentGroup, members);
+        @Transactional
+        public void deleteStudentGroupService(Long id) {
+                StudentGroup studentGroup = findStudentGroupById(id);
+                groupMemberRepository.deleteAllByStudentGroupId(id);
+                studentGroupRepository.delete(studentGroup);
+        }
 
-    }
-
-    // function helper
-    private StudentGroup findStudentGroupById(Long id) {
-        return studentGroupRepository.findById(id)
-                .orElseThrow(() -> new StudentGroupException(EnumStudentGroupError.STUDENT_GROUP_NOT_FOUND));
-    }
+        // function helper
+        private StudentGroup findStudentGroupById(Long id) {
+                return studentGroupRepository.findById(id)
+                                .orElseThrow(() -> new StudentGroupException(
+                                                EnumStudentGroupError.STUDENT_GROUP_NOT_FOUND));
+        }
 }
