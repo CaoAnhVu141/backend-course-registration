@@ -1,4 +1,4 @@
-package modules.students.mapper;
+package modules.student_group.mapper;
 
 public class StudentGroupMapper {
 

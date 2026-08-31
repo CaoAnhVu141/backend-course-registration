@@ -1,4 +1,4 @@
-package modules.students.entity;
+package modules.student_group.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

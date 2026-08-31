@@ -1,10 +1,10 @@
-package modules.students.repository;
+package modules.student_group.repository;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import modules.students.entity.GroupMember;
+import modules.student_group.entity.GroupMember;
 
 public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
 

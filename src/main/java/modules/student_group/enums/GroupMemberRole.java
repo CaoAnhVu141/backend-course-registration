@@ -1,4 +1,4 @@
-package modules.students.enums;
+package modules.student_group.enums;
 
 public enum GroupMemberRole {
     LEADER,

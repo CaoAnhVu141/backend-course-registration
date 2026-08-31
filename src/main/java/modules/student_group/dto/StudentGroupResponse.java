@@ -1,4 +1,4 @@
-package modules.students.dto;
+package modules.student_group.dto;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package modules.students.exception;
+package modules.student_group.exception;
 
 import modules.student_group.enums.EnumStudentGroupError;
 

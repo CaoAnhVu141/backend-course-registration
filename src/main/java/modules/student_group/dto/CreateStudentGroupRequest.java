@@ -1,4 +1,4 @@
-package modules.students.dto;
+package modules.student_group.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.Getter;

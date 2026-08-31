@@ -1,4 +1,4 @@
-package modules.students.enums;
+package modules.student_group.enums;
 
 import lombok.Getter;
 
@@ -14,3 +14,4 @@ public enum EnumStudentGroupError {
     EnumStudentGroupError(String message) {
         this.message = message;
     }
+}
