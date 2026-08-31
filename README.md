@@ -38,7 +38,8 @@ src/main/java/
     ├── expertisetags/                               # Module quản lý chuyên môn
     ├── lecturers/                                   # Module quản lý giảng viên
     ├── registration_period/                         # Module quản lý kỳ đăng ký
-    └── students/                                    # Module quản lý sinh viên
+    ├── students/                                    # Module quản lý sinh viên
+    └── topics/                                      # Module quản lý đề tài
 ```
 
 ### Giải thích các tầng trong module
@@ -96,17 +97,19 @@ expertisetags/
 └── service/ExpertiseTagService.java
 ```
 
-#### `modules/lecturers` — Quản lý giảng viên ⚠️ (đang phát triển)
+#### `modules/lecturers` — Quản lý giảng viên ✅ (đã hoàn thiện)
 ```
 lecturers/
 ├── controller/LecturerController.java
-├── dto/RegisterLecturerRequest.java, LecturerResponse.java, UpdateLecturerRequest.java (rỗng)
+├── dto/RegisterLecturerRequest.java, UpdateLecturerRequest.java, LecturerResponse.java
 ├── entity/Lecturer.java
+├── enums/EnumLecturerError.java, EnumLecturerSuccess.java
+├── exception/LecturerException.java
 ├── mapper/LecturerMapper.java
 ├── repository/LecturerRepository.java
 └── service/LecturerService.java
 ```
-> ⚠️ **Trạng thái**: Module này **chưa hoàn thiện**. Hiện chỉ có chức năng `register`. Các file `EnumLecturerSuccess.java` và `EnumLecturerError.java` đang bị đặt **sai thư mục** (trong `entity/` thay vì `enums/`) và **nội dung rỗng**. `UpdateLecturerRequest.java` cũng đang rỗng. Cần hoàn thiện thêm: getAll, getById, getMyProfile, update, delete.
+> ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ đầy đủ: đăng ký, danh sách, chi tiết, hồ sơ của tôi, cập nhật, xóa. Giảng viên có danh sách chuyên môn (`expertiseTagIds`) lưu ở bảng phụ `lecturer_expertise`.
 
 #### `modules/registration_period` — Quản lý kỳ đăng ký
 ```
@@ -134,6 +137,21 @@ students/
 ├── repository/StudentRepository.java
 └── service/StudentService.java
 ```
+
+#### `modules/topics` — Quản lý đề tài ✅ (đã hoàn thiện)
+```
+topics/
+├── controller/TopicController.java
+├── dto/CreateTopicRequest.java, UpdateTopicRequest.java, RejectTopicRequest.java, TopicResponse.java
+├── entity/Topic.java, TopicSupervisor.java, TopicSupervisorId.java
+├── enums/EnumTopicError.java, EnumTopicSuccess.java, TopicStatus.java
+├── exception/TopicException.java
+├── mapper/TopicMapper.java
+├── repository/TopicRepository.java, TopicSupervisorRepository.java
+├── security/TopicSecurity.java
+└── service/TopicService.java
+```
+> ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ đầy đủ: tạo đề tài (LECTURER), xem danh sách, xem đề tài đã công bố (STUDENT), xem đề tài của tôi (LECTURER), cập nhật, duyệt/từ chối/công bố (ADMIN), xóa (ADMIN). Lý do từ chối (`rejectReason`) được lưu vào database. Trạng thái đề tài gồm: `PENDING`, `APPROVED`, `REJECTED`, `PUBLISHED`, `CLOSED`.
 
 ## 🛠️ Cách chạy dự án
 
@@ -250,13 +268,16 @@ PUT /api/students/1
 }
 ```
 
-### Giảng viên (Lecturers) ⚠️
+### Giảng viên (Lecturers) ✅
 
 | Method | Endpoint | Mô tả | Quyền |
 |--------|----------|-------|-------|
 | POST | `/api/lecturers/register` | Đăng ký giảng viên | Public |
-
-> ⚠️ Module này **chưa hoàn thiện** — hiện chỉ có endpoint đăng ký.
+| GET | `/api/lecturers` | Lấy danh sách giảng viên | ADMIN |
+| GET | `/api/lecturers/{userId}` | Lấy giảng viên theo id | ADMIN |
+| GET | `/api/lecturers/me` | Lấy thông tin cá nhân | LECTURER |
+| PUT | `/api/lecturers/{userId}` | Cập nhật giảng viên | ADMIN |
+| DELETE | `/api/lecturers/{userId}` | Xóa giảng viên (soft delete) | ADMIN |
 
 **Ví dụ đăng ký giảng viên:**
 ```json
@@ -268,9 +289,12 @@ POST /api/lecturers/register
   "lecturerCode": "GV001",
   "departmentId": 1,
   "academicTitle": "Thạc sĩ",
-  "maxReviewLoad": 5
+  "maxReviewLoad": 5,
+  "expertiseTagIds": [1, 2, 3]
 }
 ```
+
+> **Lưu ý**: `expertiseTagIds` là danh sách ID chuyên môn của giảng viên — **bắt buộc** khi đăng ký, không được để trống.
 
 ### Khoa/Phòng ban (Departments)
 
@@ -333,9 +357,45 @@ POST /api/registration-periods
 }
 ```
 
+### Đề tài (Topics) ✅
+
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/topics` | Tạo đề tài | LECTURER |
+| GET | `/api/topics` | Lấy danh sách tất cả đề tài | ADMIN, LECTURER |
+| GET | `/api/topics/published` | Lấy danh sách đề tài đã công bố | STUDENT |
+| GET | `/api/topics/{id}` | Lấy đề tài theo id | ADMIN, LECTURER |
+| GET | `/api/topics/me` | Lấy đề tài của giảng viên đang đăng nhập | LECTURER |
+| PUT | `/api/topics/{id}` | Cập nhật đề tài | ADMIN, LECTURER |
+| PATCH | `/api/topics/{id}/approve` | Duyệt đề tài | ADMIN |
+| PATCH | `/api/topics/{id}/reject` | Từ chối đề tài | ADMIN |
+| PATCH | `/api/topics/{id}/publish` | Công bố đề tài | ADMIN |
+| DELETE | `/api/topics/{id}` | Xóa đề tài | ADMIN |
+
+**Ví dụ tạo đề tài:**
+```json
+POST /api/topics
+{
+  "title": "Xây dựng hệ thống quản lý thư viện",
+  "requirements": "Sinh viên cần nắm vững Java, Spring Boot, PostgreSQL",
+  "departmentId": 1,
+  "registrationPeriodId": 1
+}
+```
+
+**Ví dụ từ chối đề tài:**
+```json
+PATCH /api/topics/1/reject
+{
+  "reason": "Đề tài trùng với đề tài đã có"
+}
+```
+
+> **Trạng thái đề tài**: `PENDING` (chờ duyệt) → `APPROVED` (đã duyệt) / `REJECTED` (bị từ chối) → `PUBLISHED` (đã công bố) → `CLOSED` (đã đóng).
+
 ## 📦 Format Response
 
-Các module dùng `ApiResponse` (students, expertisetags, registration_period) trả về format chuẩn:
+Các module dùng `ApiResponse` (students, lecturers, expertisetags, registration_period, topics) trả về format chuẩn:
 
 ```json
 {
@@ -353,4 +413,21 @@ Các module dùng `ApiResponse` (students, expertisetags, registration_period) t
 - **Database**: Dùng PostgreSQL, `spring.jpa.hibernate.ddl-auto=update` tự tạo/cập nhật bảng.
 - **JWT**: Access token hết hạn sau 1 ngày (86400000ms), refresh token sau 1 tuần (604800000ms).
 - **Soft delete**: Sinh viên/giảng viên khi xóa chỉ set `status = false`, không xóa khỏi database.
-- **Module lecturers** đang trong quá trình phát triển, chưa hoàn thiện đầy đủ.
+
+## ✅ Tổng quan tính năng
+
+| Module | Trạng thái | Ghi chú |
+|--------|-----------|---------|
+| Auth (xác thực & phân quyền) | ✅ Hoàn thiện | Đăng ký SV/GV/Admin, đăng nhập, refresh token |
+| Students (sinh viên) | ✅ Hoàn thiện | CRUD đầy đủ |
+| Lecturers (giảng viên) | ✅ Hoàn thiện | CRUD đầy đủ, gồm chuyên môn (`expertiseTagIds`) |
+| Departments (khoa) | ✅ Hoàn thiện | CRUD đầy đủ |
+| Expertise Tags (chuyên môn) | ✅ Hoàn thiện | CRUD đầy đủ |
+| Registration Periods (kỳ đăng ký) | ✅ Hoàn thiện | CRUD đầy đủ |
+| Topics (đề tài) | ✅ Hoàn thiện | Tạo, xem, cập nhật, duyệt/từ chối/công bố, xóa. Lưu lý do từ chối |
+
+> 📌 **Tính năng đang chờ phát triển / chưa hoàn thiện:**
+> - **Đăng ký đề tài của sinh viên** (student chọn đề tài) — chưa làm
+> - **Phân công giảng viên hướng dẫn** (`supervisorIds` hiện chưa có endpoint để gán) — chưa làm
+> - **Chấm điểm phản biện** (reviewer score) — chưa làm
+> - **Quản lý nhóm sinh viên** (`student_groups` module đã có cấu trúc nhưng chưa triển khai) — chưa làm

@@ -47,7 +47,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | `message` | string | Thông báo tiếng Việt |
 | `data` | object/array | Payload chính |
 
-> ⚠️ **Ngoại lệ:** `AuthController` và `DepartmentController` trả **trực tiếp** object (không bọc `ApiResponse`). Các module còn lại (students, lecturers, expertise-tags, registration-periods) đều bọc `ApiResponse`.
+> ⚠️ **Ngoại lệ:** `AuthController` và `DepartmentController` trả **trực tiếp** object (không bọc `ApiResponse`). Các module còn lại (students, lecturers, expertise-tags, registration-periods, topics) đều bọc `ApiResponse`.
 
 ---
 
@@ -477,6 +477,124 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 
 ---
 
+# 7. 📝 Đề tài (Topic) — `/api/topics`
+
+| Method | Endpoint | Role | Mô tả |
+|--------|----------|------|-------|
+| POST | `/api/topics` | LECTURER | Tạo đề tài |
+| GET | `/api/topics` | ADMIN, LECTURER | Danh sách tất cả đề tài |
+| GET | `/api/topics/published` | STUDENT | Danh sách đề tài đã công bố |
+| GET | `/api/topics/{id}` | ADMIN, LECTURER | Chi tiết đề tài theo id |
+| GET | `/api/topics/me` | LECTURER | Danh sách đề tài của giảng viên đang đăng nhập |
+| PUT | `/api/topics/{id}` | ADMIN, LECTURER | Cập nhật đề tài |
+| PATCH | `/api/topics/{id}/approve` | ADMIN | Duyệt đề tài |
+| PATCH | `/api/topics/{id}/reject` | ADMIN | Từ chối đề tài |
+| PATCH | `/api/topics/{id}/publish` | ADMIN | Công bố đề tài |
+| DELETE | `/api/topics/{id}` | ADMIN | Xóa đề tài |
+
+## 7.1 Tạo đề tài
+- **`POST /api/topics`** — LECTURER
+- **Body:**
+```json
+{
+  "title": "Xây dựng hệ thống quản lý thư viện",
+  "requirements": "Sinh viên cần nắm vững Java, Spring Boot, PostgreSQL",
+  "departmentId": 1,
+  "registrationPeriodId": 1
+}
+```
+- **Giải thích field:**
+  - `title`: tên đề tài — **bắt buộc**, tối đa 255 ký tự
+  - `requirements`: yêu cầu của đề tài (không bắt buộc)
+  - `departmentId`: ID khoa/phòng ban — **bắt buộc**
+  - `registrationPeriodId`: ID kỳ đăng ký — **bắt buộc**
+- **Lưu ý:** `proposedBy` (người đề xuất) và `status` được server tự gán — `proposedBy` = username giảng viên đang đăng nhập, `status` = `PENDING`
+- **Response (201):** `ApiResponse<TopicResponse>`
+
+## 7.2 Danh sách tất cả đề tài
+- **`GET /api/topics`** — ADMIN, LECTURER
+- **Response (200):** `ApiResponse<List<TopicResponse>>`
+
+## 7.3 Danh sách đề tài đã công bố
+- **`GET /api/topics/published`** — STUDENT
+- **Response (200):** `ApiResponse<List<TopicResponse>>` (chỉ các đề tài có `status = PUBLISHED`)
+
+## 7.4 Chi tiết đề tài
+- **`GET /api/topics/{id}`** — ADMIN, LECTURER
+- **Path param:** `id` (Long)
+- **Response (200):** `ApiResponse<TopicResponse>`
+
+## 7.5 Đề tài của tôi (My Topics)
+- **`GET /api/topics/me`** — LECTURER
+- **Không cần truyền tham số** — server tự lấy username từ token đăng nhập
+- **Response (200):** `ApiResponse<List<TopicResponse>>`
+
+## 7.6 Cập nhật đề tài
+- **`PUT /api/topics/{id}`** — ADMIN, LECTURER
+- **Path param:** `id` (Long)
+- **Body:** giống Create
+```json
+{
+  "title": "Xây dựng hệ thống quản lý thư viện (nâng cấp)",
+  "requirements": "Sinh viên cần nắm vững Java, Spring Boot, PostgreSQL, Docker",
+  "departmentId": 1,
+  "registrationPeriodId": 1
+}
+```
+- **Response (200):** `ApiResponse<TopicResponse>`
+
+## 7.7 Duyệt đề tài
+- **`PATCH /api/topics/{id}/approve`** — ADMIN
+- **Path param:** `id` (Long)
+- **Không cần body**
+- **Response (200):** `ApiResponse<TopicResponse>` (status → `APPROVED`)
+
+## 7.8 Từ chối đề tài
+- **`PATCH /api/topics/{id}/reject`** — ADMIN
+- **Path param:** `id` (Long)
+- **Body:**
+```json
+{
+  "reason": "Đề tài trùng với đề tài đã có"
+}
+```
+- **Giải thích field:**
+  - `reason`: lý do từ chối — **bắt buộc**, không được để trống. Lý do này sẽ được **lưu vào database** và trả về trong `TopicResponse.rejectReason`
+- **Response (200):** `ApiResponse<TopicResponse>` (status → `REJECTED`)
+
+## 7.9 Công bố đề tài
+- **`PATCH /api/topics/{id}/publish`** — ADMIN
+- **Path param:** `id` (Long)
+- **Không cần body**
+- **Response (200):** `ApiResponse<TopicResponse>` (status → `PUBLISHED`)
+
+## 7.10 Xóa đề tài
+- **`DELETE /api/topics/{id}`** — ADMIN
+- **Path param:** `id` (Long)
+- **Response (200):** `ApiResponse<Void>` (`data` = null)
+
+## 📄 Cấu trúc `TopicResponse`
+```json
+{
+  "id": 1,
+  "title": "Xây dựng hệ thống quản lý thư viện",
+  "requirements": "Sinh viên cần nắm vững Java, Spring Boot, PostgreSQL",
+  "departmentId": 1,
+  "registrationPeriodId": 1,
+  "proposedBy": "gv001",
+  "status": "PENDING",
+  "rejectReason": null,
+  "supervisorIds": [1, 2]
+}
+```
+- **Giải thích field:**
+  - `proposedBy`: username của giảng viên đề xuất đề tài
+  - `status`: trạng thái đề tài — một trong các giá trị: `PENDING`, `APPROVED`, `REJECTED`, `PUBLISHED`, `CLOSED`
+  - `rejectReason`: lý do từ chối — chỉ có giá trị khi `status = REJECTED`, các trạng thái khác là `null`
+  - `supervisorIds`: danh sách ID giảng viên hướng dẫn (có thể rỗng)
+
+---
+
 # 🧭 Tóm tắt nhanh cho FE
 
 | Chức năng | Endpoint | Role |
@@ -491,6 +609,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | CRUD Khoa | `/api/departments` | ADMIN |
 | CRUD Chuyên môn | `/api/expertise-tags` | ADMIN |
 | CRUD Kỳ đăng ký | `/api/registration-periods` | ADMIN |
+| CRUD Đề tài | `/api/topics` | ADMIN / LECTURER / STUDENT |
 
 ---
 
@@ -502,5 +621,9 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
    Authorization: Bearer <accessToken>
    ```
 3. **Khi access token hết hạn** (HTTP 401) → gọi `POST /api/auth/refresh-token` với `refreshToken` để lấy token mới.
-4. **Lấy hồ sơ của tôi** → dùng `GET /api/students/me` (hoặc `/api/lecturers/me` khi có) — không cần truyền id, server tự lấy từ token.
+4. **Lấy hồ sơ của tôi** → dùng `GET /api/students/me` (hoặc `/api/lecturers/me`) — không cần truyền id, server tự lấy từ token.
 5. **Phân quyền hiển thị UI** dựa trên `roles` trả về từ `LoginResponse`.
+6. **Đề tài (Topics)**:
+   - **Giảng viên** tạo đề tài → `POST /api/topics`, xem đề tài của mình → `GET /api/topics/me`.
+   - **Admin** duyệt/từ chối/công bố đề tài → `PATCH /api/topics/{id}/approve|reject|publish`.
+   - **Sinh viên** xem đề tài đã công bố → `GET /api/topics/published`.
