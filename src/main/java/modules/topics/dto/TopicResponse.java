@@ -19,5 +19,6 @@ public class TopicResponse {
     private String proposedBy;
     private TopicStatus status;
     private Set<Long> supervisorIds;
+    private String rejectionReason;
 
 }

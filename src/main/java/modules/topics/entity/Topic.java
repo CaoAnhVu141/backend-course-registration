@@ -36,4 +36,7 @@ public class Topic {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private TopicStatus status;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT", nullable = true)
+    private String rejectionReason;
 }

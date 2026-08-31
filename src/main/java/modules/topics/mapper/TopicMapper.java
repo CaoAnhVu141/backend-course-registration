@@ -23,6 +23,7 @@ public class TopicMapper {
                 .registrationPeriodId(topic.getRegistrationPeriodId())
                 .proposedBy(topic.getProposedBy())
                 .status(topic.getStatus())
+                .rejectionReason(topic.getRejectionReason())
                 .supervisorIds(supervisorIds)
                 .build();
     }

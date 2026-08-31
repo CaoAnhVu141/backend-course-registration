@@ -137,9 +137,11 @@ public class TopicService {
     }
 
     @Transactional
-    public TopicResponse rejectTopicService(Long id) {
+    public TopicResponse rejectTopicService(Long id, String reason) {
         Topic topic = findTopicById(id);
+
         topic.setStatus(TopicStatus.REJECTED);
+        topic.setRejectionReason(reason.trim());
 
         return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
     }
