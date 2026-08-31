@@ -5,6 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import modules.student_group.dto.GroupMemberResponse;
+import modules.student_group.entity.GroupMember;
+import modules.student_group.entity.StudentGroup;
+import modules.student_group.dto.StudentGroupResponse;
 
 @Component
 public class StudentGroupMapper {
@@ -22,11 +25,11 @@ public class StudentGroupMapper {
 
     private GroupMemberResponse toMemberResponse(GroupMember member) {
         return GroupMemberResponse.builder()
-                .userId(groupMember.getStudent().getUserId())
-                .username(groupMember.getStudent().getUser().getUsername())
-                .studentCode(groupMember.getStudent().getStudentCode())
-                .role(groupMember.getRole())
-                .joinedAt(groupMember.getJoinedAt())
+                .userId(member.getStudent().getUserId())
+                .username(member.getStudent().getUser().getUsername())
+                .studentCode(member.getStudent().getStudentCode())
+                .role(member.getRole())
+                .joinedAt(member.getJoinedAt())
                 .build();
     }
 }
