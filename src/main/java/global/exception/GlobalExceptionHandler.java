@@ -14,6 +14,7 @@ import modules.expertisetags.exception.ExpertiseTagException;
 import modules.registration_period.exception.RegistrationPeriodException;
 import modules.student_group.exception.StudentGroupException;
 import modules.students.exception.StudentException;
+import modules.topic_registrations.exception.TopicRegistrationException;
 import modules.topics.exception.TopicException;
 import modules.lecturers.exception.LecturerException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -110,6 +111,13 @@ public class GlobalExceptionHandler {
     // Student Group Exception handler
     @ExceptionHandler(StudentGroupException.class)
     public ResponseEntity<Map<String, Object>> handleStudentGroupException(StudentGroupException exception) {
+        return response(HttpStatus.CONFLICT, exception.getMessage(), null);
+    }
+
+    // Topic Registration Exception handler
+    @ExceptionHandler(TopicRegistrationException.class)
+    public ResponseEntity<Map<String, Object>> handleTopicRegistrationException(
+            TopicRegistrationException exception) {
         return response(HttpStatus.CONFLICT, exception.getMessage(), null);
     }
 }
