@@ -61,7 +61,7 @@ public class StudentGroupService {
                                                                 createStudentGroupRequest.getRegistrationPeriodId())
                                                 .name(createStudentGroupRequest.getName())
                                                 .status(true)
-                                                .createBy(username)
+                                                .createBy(leaderStudent.getUser().getEmail())
                                                 .build());
 
                 List<GroupMember> members = memberUserIds.stream().map(userId -> {

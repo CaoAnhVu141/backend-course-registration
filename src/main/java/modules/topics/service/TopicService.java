@@ -49,7 +49,7 @@ public class TopicService {
                         .requirements(request.getRequirements())
                         .departmentId(request.getDepartmentId())
                         .registrationPeriodId(request.getRegistrationPeriodId())
-                        .proposedBy(username)
+                        .proposedBy(lecturer.getUser().getEmail())
                         .status(TopicStatus.PENDING)
                         .build());
         saveTopicSupervisor(topic, lecturer);

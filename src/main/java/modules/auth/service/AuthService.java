@@ -40,24 +40,55 @@ public class AuthService {
     private final AuthMapper authMapper;
     private final UserAccountService userAccountService;
 
+    // @Transactional
+    // public LoginResponse loginService(LoginRequest request) {
+    // try {
+    // authenticationManager.authenticate(
+    // new UsernamePasswordAuthenticationToken(request.getUsername(),
+    // request.getPassword()));
+    // } catch (AuthenticationException exception) {
+    // throw new InvalidCredentialsException();
+    // }
+
+    // UserDetails userDetails =
+    // userDetailsService.loadUserByUsername(request.getUsername());
+    // User user = userRepository.findByUsername(request.getUsername())
+    // .orElseThrow(InvalidCredentialsException::new);
+
+    // String accessToken = jwtService.generateAccessToken(userDetails);
+    // String refreshToken = createRefreshToken(user);
+
+    // return authMapper.loginResponseMapper(user, accessToken, refreshToken,
+    // jwtService.getAccessTokenExpiration());
+    // }
+
+    // @Refactor login
     @Transactional
     public LoginResponse loginService(LoginRequest request) {
         try {
+            String login = request.getUsername().trim();
+
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        } catch (AuthenticationException exception) {
+                    new UsernamePasswordAuthenticationToken(
+                            login,
+                            request.getPassword()));
+
+            UserDetails userDetails = userDetailsService.loadUserByUsername(login);
+
+            User user = userRepository.findByUsernameOrEmail(login, login.toLowerCase())
+                    .orElseThrow(InvalidCredentialsException::new);
+
+            String accessToken = jwtService.generateAccessToken(userDetails);
+            String refreshToken = createRefreshToken(user);
+
+            return authMapper.loginResponseMapper(
+                    user,
+                    accessToken,
+                    refreshToken,
+                    jwtService.getAccessTokenExpiration());
+        } catch (AuthenticationException | InvalidCredentialsException exception) {
             throw new InvalidCredentialsException();
         }
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(InvalidCredentialsException::new);
-
-        String accessToken = jwtService.generateAccessToken(userDetails);
-        String refreshToken = createRefreshToken(user);
-
-        return authMapper.loginResponseMapper(user, accessToken, refreshToken,
-                jwtService.getAccessTokenExpiration());
     }
 
     @Transactional
