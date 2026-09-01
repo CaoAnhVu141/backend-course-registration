@@ -12,6 +12,7 @@ import modules.auth.exception.InvalidTokenException;
 import modules.departments.exceptions.DepartmentException;
 import modules.expertisetags.exception.ExpertiseTagException;
 import modules.registration_period.exception.RegistrationPeriodException;
+import modules.student_group.exception.StudentGroupException;
 import modules.students.exception.StudentException;
 import modules.topics.exception.TopicException;
 import modules.lecturers.exception.LecturerException;
@@ -104,5 +105,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TopicException.class)
     public ResponseEntity<Map<String, Object>> handleTopicException(TopicException exception) {
         return response(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
+    }
+
+    // Student Group Exception handler
+    @ExceptionHandler(StudentGroupException.class)
+    public ResponseEntity<Map<String, Object>> handleStudentGroupException(StudentGroupException exception) {
+        return response(HttpStatus.CONFLICT, exception.getMessage(), null);
     }
 }
