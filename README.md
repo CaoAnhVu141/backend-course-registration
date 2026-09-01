@@ -38,6 +38,7 @@ src/main/java/
     ├── expertisetags/                               # Module quản lý chuyên môn
     ├── lecturers/                                   # Module quản lý giảng viên
     ├── registration_period/                         # Module quản lý kỳ đăng ký
+    ├── student_group/                               # Module quản lý nhóm sinh viên
     ├── students/                                    # Module quản lý sinh viên
     └── topics/                                      # Module quản lý đề tài
 ```
@@ -124,6 +125,20 @@ registration_period/
 ├── service/RegistrationPeriodService.java
 └── validator/RegistrationPeriodValidator.java
 ```
+
+#### `modules/student_group` — Quản lý nhóm sinh viên ✅ (đã hoàn thiện)
+```
+student_group/
+├── controller/StudentGroupController.java
+├── dto/CreateStudentGroupRequest.java, StudentGroupResponse.java, GroupMemberResponse.java
+├── entity/StudentGroup.java, GroupMember.java
+├── enums/EnumStudentGroupError.java, EnumStudentGroupSuccess.java, GroupMemberRole.java
+├── exception/StudentGroupException.java
+├── mapper/StudentGroupMapper.java
+├── repository/StudentGroupRepository.java, GroupMemberRepository.java
+└── service/StudentGroupService.java
+```
+> ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ đầy đủ: tạo nhóm (STUDENT), danh sách nhóm, danh sách nhóm theo kỳ đăng ký, chi tiết nhóm (ADMIN, LECTURER), xóa nhóm (ADMIN). Mỗi nhóm có một trưởng nhóm (`LEADER`) và các thành viên (`MEMBER`). Người tạo nhóm tự động trở thành `LEADER`.
 
 #### `modules/students` — Quản lý sinh viên
 ```
@@ -392,6 +407,28 @@ PATCH /api/topics/1/reject
 ```
 
 > **Trạng thái đề tài**: `PENDING` (chờ duyệt) → `APPROVED` (đã duyệt) / `REJECTED` (bị từ chối) → `PUBLISHED` (đã công bố) → `CLOSED` (đã đóng).
+
+### Nhóm sinh viên (Student Groups) ✅
+
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/student-groups` | Tạo nhóm sinh viên | STUDENT |
+| GET | `/api/student-groups` | Lấy danh sách tất cả nhóm | ADMIN, LECTURER |
+| GET | `/api/student-groups/registration-period/{registrationPeriodId}` | Lấy danh sách nhóm theo kỳ đăng ký | ADMIN, LECTURER |
+| GET | `/api/student-groups/{id}` | Lấy chi tiết nhóm theo id | ADMIN, LECTURER |
+| DELETE | `/api/student-groups/{id}` | Xóa nhóm | ADMIN |
+
+**Ví dụ tạo nhóm sinh viên:**
+```json
+POST /api/student-groups
+{
+  "registrationPeriodId": 1,
+  "name": "Nhóm 1 - Khóa luận",
+  "memberUserIds": [2, 3, 4]
+}
+```
+
+> **Lưu ý**: Người tạo nhóm (từ token đăng nhập) tự động được thêm vào nhóm với vai trò `LEADER`. Các thành viên trong `memberUserIds` có vai trò `MEMBER`. Tất cả thành viên phải chưa thuộc nhóm nào trong cùng kỳ đăng ký.
 
 ## 📦 Format Response
 

@@ -47,7 +47,6 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | `message` | string | Thông báo tiếng Việt |
 | `data` | object/array | Payload chính |
 
-> ⚠️ **Ngoại lệ:** `AuthController` và `DepartmentController` trả **trực tiếp** object (không bọc `ApiResponse`). Các module còn lại (students, lecturers, expertise-tags, registration-periods, topics) đều bọc `ApiResponse`.
 
 ---
 
@@ -595,6 +594,191 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 
 ---
 
+# 8. 👥 Nhóm sinh viên — `/api/student-groups`
+
+| Method | Endpoint | Role | Mô tả |
+|--------|----------|------|-------|
+| POST | `/api/student-groups` | STUDENT | Tạo nhóm sinh viên |
+| GET | `/api/student-groups` | ADMIN, LECTURER | Danh sách tất cả nhóm |
+| GET | `/api/student-groups/registration-period/{registrationPeriodId}` | ADMIN, LECTURER | Danh sách nhóm theo kỳ đăng ký |
+| GET | `/api/student-groups/{id}` | ADMIN, LECTURER | Chi tiết nhóm theo id |
+| DELETE | `/api/student-groups/{id}` | ADMIN | Xóa nhóm |
+
+## 8.1 Tạo nhóm sinh viên
+- **`POST /api/student-groups`** — STUDENT
+- **Body:**
+```json
+{
+  "registrationPeriodId": 1,
+  "name": "Nhóm 1 - Khóa luận",
+  "memberUserIds": [2, 3, 4]
+}
+```
+- **Giải thích field:**
+  - `registrationPeriodId`: ID kỳ đăng ký — **bắt buộc**, phải là số dương
+  - `name`: tên nhóm — **bắt buộc**, tối đa 255 ký tự
+  - `memberUserIds`: danh sách ID sinh viên (userId) trong nhóm — **bắt buộc**, không được để trống
+- **Lưu ý quan trọng:**
+  - Người tạo nhóm (lấy từ token đăng nhập) **tự động được thêm** vào nhóm với vai trò `LEADER` — không cần khai báo trong `memberUserIds`.
+  - Các thành viên trong `memberUserIds` có vai trò `MEMBER`.
+  - Tất cả thành viên (kể cả leader) phải **chưa thuộc nhóm nào** trong cùng kỳ đăng ký, nếu không sẽ báo lỗi `STUDENT_ALREADY_IN_GROUP`.
+- **Response (201):** `ApiResponse<StudentGroupResponse>`
+- **Ví dụ response:**
+```json
+{
+  "code": 201,
+  "message": "Tạo nhóm thành công",
+  "data": {
+    "id": 1,
+    "registrationPeriodId": 1,
+    "name": "Nhóm 1 - Khóa luận",
+    "status": true,
+    "createdBy": "sv001",
+    "members": [
+      { "userId": 1, "username": "sv001", "studentCode": "20110001", "role": "LEADER", "joinedAt": "2026-09-01T14:00:00" },
+      { "userId": 2, "username": "sv002", "studentCode": "20110002", "role": "MEMBER", "joinedAt": "2026-09-01T14:00:00" }
+    ]
+  }
+}
+```
+
+## 8.2 Danh sách tất cả nhóm
+- **`GET /api/student-groups`** — ADMIN, LECTURER
+- **Response (200):** `ApiResponse<List<StudentGroupResponse>>`
+- **Ví dụ response:**
+```json
+{
+  "code": 200,
+  "message": "Lấy danh sách nhóm thành công",
+  "data": [
+    {
+      "id": 1,
+      "registrationPeriodId": 1,
+      "name": "Nhóm 1 - Khóa luận",
+      "status": true,
+      "createdBy": "sv001",
+      "members": [
+        { "userId": 1, "username": "sv001", "studentCode": "20110001", "role": "LEADER", "joinedAt": "2026-09-01T14:00:00" }
+      ]
+    },
+    {
+      "id": 2,
+      "registrationPeriodId": 1,
+      "name": "Nhóm 2 - Khóa luận",
+      "status": true,
+      "createdBy": "sv003",
+      "members": [
+        { "userId": 3, "username": "sv003", "studentCode": "20110003", "role": "LEADER", "joinedAt": "2026-09-01T15:00:00" }
+      ]
+    }
+  ]
+}
+```
+
+## 8.3 Danh sách nhóm theo kỳ đăng ký
+- **`GET /api/student-groups/registration-period/{registrationPeriodId}`** — ADMIN, LECTURER
+- **Path param:** `registrationPeriodId` (Long)
+- **Response (200):** `ApiResponse<List<StudentGroupResponse>>` (chỉ các nhóm thuộc kỳ đăng ký đó)
+- **Ví dụ response:** giống 8.2, nhưng `data` chỉ chứa các nhóm có `registrationPeriodId` khớp với path param.
+
+## 8.4 Chi tiết nhóm
+- **`GET /api/student-groups/{id}`** — ADMIN, LECTURER
+- **Path param:** `id` (Long)
+- **Response (200):** `ApiResponse<StudentGroupResponse>`
+- **Ví dụ response:**
+```json
+{
+  "code": 200,
+  "message": "Lấy chi tiết nhóm thành công",
+  "data": {
+    "id": 1,
+    "registrationPeriodId": 1,
+    "name": "Nhóm 1 - Khóa luận",
+    "status": true,
+    "createdBy": "sv001",
+    "members": [
+      { "userId": 1, "username": "sv001", "studentCode": "20110001", "role": "LEADER", "joinedAt": "2026-09-01T14:00:00" },
+      { "userId": 2, "username": "sv002", "studentCode": "20110002", "role": "MEMBER", "joinedAt": "2026-09-01T14:00:00" }
+    ]
+  }
+}
+```
+
+## 8.5 Xóa nhóm
+- **`DELETE /api/student-groups/{id}`** — ADMIN
+- **Path param:** `id` (Long)
+- **Response (200):** `ApiResponse<Void>` (`data` = null)
+- **Ví dụ response:**
+```json
+{
+  "code": 200,
+  "message": "Xóa nhóm thành công",
+  "data": null
+}
+```
+
+## 📄 Cấu trúc `StudentGroupResponse`
+
+### Bảng kiểu dữ liệu trả ra
+
+| Field | Kiểu dữ liệu | Mô tả |
+|-------|-------------|-------|
+| `id` | `Long` | ID của nhóm |
+| `registrationPeriodId` | `Long` | ID kỳ đăng ký mà nhóm thuộc về |
+| `name` | `String` | Tên nhóm |
+| `status` | `boolean` | Trạng thái nhóm (`true` = hoạt động, `false` = đã đóng) |
+| `createdBy` | `String` | Username của người tạo nhóm |
+| `members` | `List<GroupMemberResponse>` | Danh sách thành viên trong nhóm |
+
+### Cấu trúc `GroupMemberResponse`
+
+| Field | Kiểu dữ liệu | Mô tả |
+|-------|-------------|-------|
+| `userId` | `Long` | ID của tài khoản sinh viên |
+| `username` | `String` | Username đăng nhập của sinh viên |
+| `studentCode` | `String` | Mã số sinh viên |
+| `role` | `GroupMemberRole` (enum) | Vai trò trong nhóm: `LEADER` hoặc `MEMBER` |
+| `joinedAt` | `LocalDateTime` | Thời gian thành viên tham gia nhóm (định dạng ISO-8601, ví dụ `2026-09-01T14:00:00`) |
+
+### Ví dụ response đầy đủ
+```json
+{
+  "code": 200,
+  "message": "Lấy danh sách nhóm thành công",
+  "data": {
+    "id": 1,
+    "registrationPeriodId": 1,
+    "name": "Nhóm 1 - Khóa luận",
+    "status": true,
+    "createdBy": "sv001",
+    "members": [
+      {
+        "userId": 1,
+        "username": "sv001",
+        "studentCode": "20110001",
+        "role": "LEADER",
+        "joinedAt": "2026-09-01T14:00:00"
+      },
+      {
+        "userId": 2,
+        "username": "sv002",
+        "studentCode": "20110002",
+        "role": "MEMBER",
+        "joinedAt": "2026-09-01T14:00:00"
+      }
+    ]
+  }
+}
+```
+- **Giải thích field:**
+  - `status`: trạng thái nhóm (`true` = hoạt động)
+  - `createdBy`: username của người tạo nhóm
+  - `members`: danh sách thành viên trong nhóm
+  - `role`: vai trò thành viên — `LEADER` (trưởng nhóm) hoặc `MEMBER` (thành viên)
+  - `joinedAt`: thời gian thành viên tham gia nhóm
+
+---
+
 # 🧭 Tóm tắt nhanh cho FE
 
 | Chức năng | Endpoint | Role |
@@ -610,6 +794,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | CRUD Chuyên môn | `/api/expertise-tags` | ADMIN |
 | CRUD Kỳ đăng ký | `/api/registration-periods` | ADMIN |
 | CRUD Đề tài | `/api/topics` | ADMIN / LECTURER / STUDENT |
+| Nhóm sinh viên | `/api/student-groups` | ADMIN / LECTURER / STUDENT |
 
 ---
 
@@ -627,3 +812,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
    - **Giảng viên** tạo đề tài → `POST /api/topics`, xem đề tài của mình → `GET /api/topics/me`.
    - **Admin** duyệt/từ chối/công bố đề tài → `PATCH /api/topics/{id}/approve|reject|publish`.
    - **Sinh viên** xem đề tài đã công bố → `GET /api/topics/published`.
+7. **Nhóm sinh viên (Student Groups)**:
+   - **Sinh viên** tạo nhóm → `POST /api/student-groups` (người tạo tự động là `LEADER`).
+   - **Admin/Lecturer** xem danh sách nhóm → `GET /api/student-groups`, xem theo kỳ đăng ký → `GET /api/student-groups/registration-period/{id}`.
+   - **Admin** xóa nhóm → `DELETE /api/student-groups/{id}`.
