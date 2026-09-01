@@ -1,5 +1,8 @@
 package modules.topic_registrations.enums;
 
-public class TopicRegistrationStatus {
-    
+public enum TopicRegistrationStatus {
+    PENDING,
+    APPROVED,
+    REJECTED,
+    CANCELLED
 }
