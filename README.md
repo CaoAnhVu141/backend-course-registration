@@ -40,7 +40,8 @@ src/main/java/
     ├── registration_period/                         # Module quản lý kỳ đăng ký
     ├── student_group/                               # Module quản lý nhóm sinh viên
     ├── students/                                    # Module quản lý sinh viên
-    └── topics/                                      # Module quản lý đề tài
+    ├── topics/                                      # Module quản lý đề tài
+    └── topic_registrations/                         # Module quản lý đăng ký đề tài
 ```
 
 ### Giải thích các tầng trong module
@@ -167,6 +168,21 @@ topics/
 └── service/TopicService.java
 ```
 > ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ đầy đủ: tạo đề tài (LECTURER), xem danh sách, xem đề tài đã công bố (STUDENT), xem đề tài của tôi (LECTURER), cập nhật, duyệt/từ chối/công bố (ADMIN), xóa (ADMIN). Lý do từ chối (`rejectReason`) được lưu vào database. Trạng thái đề tài gồm: `PENDING`, `APPROVED`, `REJECTED`, `PUBLISHED`, `CLOSED`.
+
+#### `modules/topic_registrations` — Quản lý đăng ký đề tài ✅ (đã hoàn thiện)
+```
+topic_registrations/
+├── controller/TopicRegistrationController.java
+├── dto/CreateTopicRegistrationRequest.java, RejectTopicRegistrationRequest.java, TopicRegistrationResponse.java
+├── entity/TopicRegistration.java
+├── enums/EnumTopicRegistrationError.java, EnumTopicRegistrationSuccess.java, TopicRegistrationStatus.java
+├── exception/TopicRegistrationException.java
+├── mapper/TopicRegistrationMapper.java
+├── repository/TopicRegistrationRepository.java
+├── security/TopicRegistrationSecurity.java
+└── service/TopicRegistrationService.java
+```
+> ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ đầy đủ: đăng ký đề tài (STUDENT), danh sách đăng ký, chi tiết đăng ký, danh sách theo nhóm sinh viên, danh sách theo đề tài, duyệt/từ chối (ADMIN, LECTURER), hủy đăng ký (STUDENT). Một nhóm sinh viên đăng ký một đề tài đã được công bố. Trạng thái đăng ký gồm: `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`. Lý do từ chối (`rejectedReason`) và người quyết định (`decidedBy`) được lưu vào database.
 
 ## 🛠️ Cách chạy dự án
 

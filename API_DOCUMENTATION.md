@@ -779,6 +779,270 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 
 ---
 
+# 9. 📋 Đăng ký đề tài — `/api/topic-registrations`
+
+| Method | Endpoint | Role | Mô tả |
+|--------|----------|------|-------|
+| POST | `/api/topic-registrations` | STUDENT | Đăng ký đề tài cho nhóm |
+| GET | `/api/topic-registrations` | ADMIN, LECTURER | Danh sách tất cả đăng ký đề tài |
+| GET | `/api/topic-registrations/{id}` | ADMIN, LECTURER, STUDENT | Chi tiết đăng ký theo id |
+| GET | `/api/topic-registrations/student-group/{studentGroupId}` | ADMIN, LECTURER | Danh sách đăng ký theo nhóm sinh viên |
+| GET | `/api/topic-registrations/topic/{topicId}` | ADMIN, LECTURER | Danh sách đăng ký theo đề tài |
+| PATCH | `/api/topic-registrations/{id}/approve` | ADMIN, LECTURER | Duyệt đăng ký đề tài |
+| PATCH | `/api/topic-registrations/{id}/reject` | ADMIN, LECTURER | Từ chối đăng ký đề tài |
+| PATCH | `/api/topic-registrations/{id}/cancel` | STUDENT | Hủy đăng ký đề tài |
+
+## 9.1 Đăng ký đề tài
+- **`POST /api/topic-registrations`** — STUDENT
+- **Body:**
+```json
+{
+  "studentGroupId": 1,
+  "topicId": 5
+}
+```
+- **Giải thích field:**
+  - `studentGroupId`: ID nhóm sinh viên — **bắt buộc**, phải là số dương
+  - `topicId`: ID đề tài — **bắt buộc**, phải là số dương
+- **Lưu ý quan trọng:**
+  - Người đăng ký (lấy từ token đăng nhập) phải là thành viên của nhóm sinh viên.
+  - Đề tài phải ở trạng thái `PUBLISHED` (đã công bố), nếu không sẽ báo lỗi `TOPIC_NOT_PUBLISHED`.
+  - Nhóm sinh viên phải đang hoạt động (`status = true`), nếu không sẽ báo lỗi `STUDENT_GROUP_INACTIVE`.
+  - Nhóm sinh viên **chưa đăng ký đề tài nào** trong kỳ đăng ký hiện tại, nếu không sẽ báo lỗi `STUDENT_GROUP_ALREADY_REGISTERED`.
+  - Đề tài **chưa có nhóm nào được duyệt**, nếu không sẽ báo lỗi `TOPIC_ALREADY_APPROVED`.
+- **Response (201):** `ApiResponse<TopicRegistrationResponse>`
+- **Ví dụ response:**
+```json
+{
+  "code": 201,
+  "message": "Đăng ký đề tài thành công",
+  "data": {
+    "id": 1,
+    "studentGroupId": 1,
+    "studentGroupName": "Nhóm 1 - Khóa luận",
+    "topicId": 5,
+    "topicTitle": "Xây dựng hệ thống quản lý thư viện",
+    "status": "PENDING",
+    "registeredBy": "sv001",
+    "registeredAt": "2026-09-01T14:00:00",
+    "decidedBy": null,
+    "rejectionReason": null
+  }
+}
+```
+
+## 9.2 Danh sách tất cả đăng ký đề tài
+- **`GET /api/topic-registrations`** — ADMIN, LECTURER
+- **Response (200):** `ApiResponse<List<TopicRegistrationResponse>>`
+- **Ví dụ response:**
+```json
+{
+  "code": 200,
+  "message": "Lấy danh sách đăng ký đề tài thành công",
+  "data": [
+    {
+      "id": 1,
+      "studentGroupId": 1,
+      "studentGroupName": "Nhóm 1 - Khóa luận",
+      "topicId": 5,
+      "topicTitle": "Xây dựng hệ thống quản lý thư viện",
+      "status": "PENDING",
+      "registeredBy": "sv001",
+      "registeredAt": "2026-09-01T14:00:00",
+      "decidedBy": null,
+      "rejectionReason": null
+    },
+    {
+      "id": 2,
+      "studentGroupId": 2,
+      "studentGroupName": "Nhóm 2 - Khóa luận",
+      "topicId": 6,
+      "topicTitle": "Ứng dụng AI nhận diện khuôn mặt",
+      "status": "APPROVED",
+      "registeredBy": "sv003",
+      "registeredAt": "2026-09-01T15:00:00",
+      "decidedBy": "gv001",
+      "rejectionReason": null
+    }
+  ]
+}
+```
+
+## 9.3 Chi tiết đăng ký đề tài
+- **`GET /api/topic-registrations/{id}`** — ADMIN, LECTURER, STUDENT
+- **Path param:** `id` (Long)
+- **Response (200):** `ApiResponse<TopicRegistrationResponse>`
+- **Ví dụ response:**
+```json
+{
+  "code": 200,
+  "message": "Lấy thông tin đăng ký đề tài thành công",
+  "data": {
+    "id": 1,
+    "studentGroupId": 1,
+    "studentGroupName": "Nhóm 1 - Khóa luận",
+    "topicId": 5,
+    "topicTitle": "Xây dựng hệ thống quản lý thư viện",
+    "status": "PENDING",
+    "registeredBy": "sv001",
+    "registeredAt": "2026-09-01T14:00:00",
+    "decidedBy": null,
+    "rejectionReason": null
+  }
+}
+```
+
+## 9.4 Danh sách đăng ký theo nhóm sinh viên
+- **`GET /api/topic-registrations/student-group/{studentGroupId}`** — ADMIN, LECTURER
+- **Path param:** `studentGroupId` (Long)
+- **Response (200):** `ApiResponse<List<TopicRegistrationResponse>>` (chỉ các đăng ký thuộc nhóm sinh viên đó)
+- **Ví dụ response:** giống 9.2, nhưng `data` chỉ chứa các đăng ký có `studentGroupId` khớp với path param.
+
+## 9.5 Danh sách đăng ký theo đề tài
+- **`GET /api/topic-registrations/topic/{topicId}`** — ADMIN, LECTURER
+- **Path param:** `topicId` (Long)
+- **Response (200):** `ApiResponse<List<TopicRegistrationResponse>>` (chỉ các đăng ký thuộc đề tài đó)
+- **Ví dụ response:** giống 9.2, nhưng `data` chỉ chứa các đăng ký có `topicId` khớp với path param.
+
+## 9.6 Duyệt đăng ký đề tài
+- **`PATCH /api/topic-registrations/{id}/approve`** — ADMIN, LECTURER
+- **Path param:** `id` (Long)
+- **Không cần body** — server tự lấy username từ token đăng nhập làm `decidedBy`
+- **Lưu ý:** Chỉ duyệt được đăng ký ở trạng thái `PENDING`. Nếu không sẽ báo lỗi `INVALID_TOPIC_REGISTRATION_STATUS`.
+- **Response (200):** `ApiResponse<TopicRegistrationResponse>` (trạng thái chuyển thành `APPROVED`)
+- **Ví dụ response:**
+```json
+{
+  "code": 200,
+  "message": "Duyệt đăng ký đề tài thành công",
+  "data": {
+    "id": 1,
+    "studentGroupId": 1,
+    "studentGroupName": "Nhóm 1 - Khóa luận",
+    "topicId": 5,
+    "topicTitle": "Xây dựng hệ thống quản lý thư viện",
+    "status": "APPROVED",
+    "registeredBy": "sv001",
+    "registeredAt": "2026-09-01T14:00:00",
+    "decidedBy": "gv001",
+    "rejectionReason": null
+  }
+}
+```
+
+## 9.7 Từ chối đăng ký đề tài
+- **`PATCH /api/topic-registrations/{id}/reject`** — ADMIN, LECTURER
+- **Path param:** `id` (Long)
+- **Body:**
+```json
+{
+  "rejectionReason": "Đề tài đã hết chỉ tiêu"
+}
+```
+- **Giải thích field:**
+  - `rejectionReason`: lý do từ chối — **bắt buộc**, không được để trống
+- **Lưu ý:** Chỉ từ chối được đăng ký ở trạng thái `PENDING`. Nếu không sẽ báo lỗi `INVALID_TOPIC_REGISTRATION_STATUS`.
+- **Response (200):** `ApiResponse<TopicRegistrationResponse>` (trạng thái chuyển thành `REJECTED`)
+- **Ví dụ response:**
+```json
+{
+  "code": 200,
+  "message": "Từ chối đăng ký đề tài thành công",
+  "data": {
+    "id": 1,
+    "studentGroupId": 1,
+    "studentGroupName": "Nhóm 1 - Khóa luận",
+    "topicId": 5,
+    "topicTitle": "Xây dựng hệ thống quản lý thư viện",
+    "status": "REJECTED",
+    "registeredBy": "sv001",
+    "registeredAt": "2026-09-01T14:00:00",
+    "decidedBy": "gv001",
+    "rejectionReason": "Đề tài đã hết chỉ tiêu"
+  }
+}
+```
+
+## 9.8 Hủy đăng ký đề tài
+- **`PATCH /api/topic-registrations/{id}/cancel`** — STUDENT
+- **Path param:** `id` (Long)
+- **Không cần body** — server tự lấy username từ token đăng nhập
+- **Lưu ý:** Chỉ hủy được đăng ký ở trạng thái `PENDING`. Nếu không sẽ báo lỗi `INVALID_TOPIC_REGISTRATION_STATUS`.
+- **Response (200):** `ApiResponse<TopicRegistrationResponse>` (trạng thái chuyển thành `CANCELLED`)
+- **Ví dụ response:**
+```json
+{
+  "code": 200,
+  "message": "Hủy đăng ký đề tài thành công",
+  "data": {
+    "id": 1,
+    "studentGroupId": 1,
+    "studentGroupName": "Nhóm 1 - Khóa luận",
+    "topicId": 5,
+    "topicTitle": "Xây dựng hệ thống quản lý thư viện",
+    "status": "CANCELLED",
+    "registeredBy": "sv001",
+    "registeredAt": "2026-09-01T14:00:00",
+    "decidedBy": null,
+    "rejectionReason": null
+  }
+}
+```
+
+## 📄 Cấu trúc `TopicRegistrationResponse`
+
+### Bảng kiểu dữ liệu trả ra
+
+| Field | Kiểu dữ liệu | Mô tả |
+|-------|-------------|-------|
+| `id` | `Long` | ID của đăng ký đề tài |
+| `studentGroupId` | `Long` | ID nhóm sinh viên đăng ký |
+| `studentGroupName` | `String` | Tên nhóm sinh viên đăng ký |
+| `topicId` | `Long` | ID đề tài được đăng ký |
+| `topicTitle` | `String` | Tiêu đề đề tài được đăng ký |
+| `status` | `TopicRegistrationStatus` (enum) | Trạng thái đăng ký: `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED` |
+| `registeredBy` | `String` | Username của người đăng ký |
+| `registeredAt` | `LocalDateTime` | Thời gian đăng ký (định dạng ISO-8601, ví dụ `2026-09-01T14:00:00`) |
+| `decidedBy` | `String` | Username của người duyệt/từ chối (null nếu chưa quyết định) |
+| `rejectionReason` | `String` | Lý do từ chối (null nếu không bị từ chối) |
+
+### Giải thích trạng thái `status`
+
+| Giá trị | Mô tả |
+|---------|-------|
+| `PENDING` | Đang chờ duyệt (mặc định khi mới đăng ký) |
+| `APPROVED` | Đã được duyệt |
+| `REJECTED` | Đã bị từ chối (kèm `rejectionReason`) |
+| `CANCELLED` | Đã bị hủy bởi sinh viên |
+
+### Ví dụ response đầy đủ
+```json
+{
+  "code": 200,
+  "message": "Lấy danh sách đăng ký đề tài thành công",
+  "data": {
+    "id": 1,
+    "studentGroupId": 1,
+    "studentGroupName": "Nhóm 1 - Khóa luận",
+    "topicId": 5,
+    "topicTitle": "Xây dựng hệ thống quản lý thư viện",
+    "status": "PENDING",
+    "registeredBy": "sv001",
+    "registeredAt": "2026-09-01T14:00:00",
+    "decidedBy": null,
+    "rejectionReason": null
+  }
+}
+```
+- **Giải thích field:**
+  - `status`: trạng thái đăng ký đề tài
+  - `registeredBy`: username của người đăng ký (thành viên nhóm)
+  - `registeredAt`: thời gian đăng ký
+  - `decidedBy`: username của người duyệt/từ chối (null khi chưa quyết định)
+  - `rejectionReason`: lý do từ chối (null khi không bị từ chối)
+
+---
+
 # 🧭 Tóm tắt nhanh cho FE
 
 | Chức năng | Endpoint | Role |
@@ -795,6 +1059,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | CRUD Kỳ đăng ký | `/api/registration-periods` | ADMIN |
 | CRUD Đề tài | `/api/topics` | ADMIN / LECTURER / STUDENT |
 | Nhóm sinh viên | `/api/student-groups` | ADMIN / LECTURER / STUDENT |
+| Đăng ký đề tài | `/api/topic-registrations` | ADMIN / LECTURER / STUDENT |
 
 ---
 
@@ -816,3 +1081,8 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
    - **Sinh viên** tạo nhóm → `POST /api/student-groups` (người tạo tự động là `LEADER`).
    - **Admin/Lecturer** xem danh sách nhóm → `GET /api/student-groups`, xem theo kỳ đăng ký → `GET /api/student-groups/registration-period/{id}`.
    - **Admin** xóa nhóm → `DELETE /api/student-groups/{id}`.
+8. **Đăng ký đề tài (Topic Registrations)**:
+   - **Sinh viên** đăng ký đề tài cho nhóm → `POST /api/topic-registrations` (đề tài phải ở trạng thái `PUBLISHED`, nhóm chưa đăng ký đề tài nào trong kỳ).
+   - **Sinh viên** hủy đăng ký → `PATCH /api/topic-registrations/{id}/cancel` (chỉ khi đang `PENDING`).
+   - **Admin/Lecturer** duyệt/từ chối đăng ký → `PATCH /api/topic-registrations/{id}/approve|reject` (chỉ khi đang `PENDING`).
+   - **Admin/Lecturer** xem danh sách đăng ký → `GET /api/topic-registrations`, theo nhóm → `GET /api/topic-registrations/student-group/{id}`, theo đề tài → `GET /api/topic-registrations/topic/{id}`.
