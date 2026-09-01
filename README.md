@@ -480,7 +480,5 @@ Các module dùng `ApiResponse` (students, lecturers, expertisetags, registratio
 | Topics (đề tài) | ✅ Hoàn thiện | Tạo, xem, cập nhật, duyệt/từ chối/công bố, xóa. Lưu lý do từ chối |
 
 > 📌 **Tính năng đang chờ phát triển / chưa hoàn thiện:**
-> - **Đăng ký đề tài của sinh viên** (student chọn đề tài) — chưa làm
 > - **Phân công giảng viên hướng dẫn** (`supervisorIds` hiện chưa có endpoint để gán) — chưa làm
 > - **Chấm điểm phản biện** (reviewer score) — chưa làm
-> - **Quản lý nhóm sinh viên** (`student_groups` module đã có cấu trúc nhưng chưa triển khai) — chưa làm
