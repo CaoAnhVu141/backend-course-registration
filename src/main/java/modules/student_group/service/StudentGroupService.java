@@ -33,6 +33,7 @@ public class StudentGroupService {
         private final StudentGroupMapper studentGroupMapper;
         private final RegistrationPeriodRepository registrationPeriodRepository;
         private final StudentRepository studentRepository;
+        private static final int maxGroupMembers = 3;
 
         @Transactional
         public StudentGroupResponse createStudentGroupService(CreateStudentGroupRequest createStudentGroupRequest,
@@ -44,6 +45,9 @@ public class StudentGroupService {
                                 .orElseThrow(() -> new StudentGroupException(EnumStudentGroupError.STUDENT_NOT_FOUND));
                 Set<Long> memberUserIds = new HashSet<>(createStudentGroupRequest.getMemberUserIds());
                 memberUserIds.add(leaderStudent.getUserId());
+                if (memberUserIds.size() > maxGroupMembers) {
+                        throw new StudentGroupException(EnumStudentGroupError.GROUP_MEMBER_LIMIT_EXCEEDED);
+                }
 
                 for (Long userId : memberUserIds) {
                         if (!studentRepository.existsById(userId)) {
