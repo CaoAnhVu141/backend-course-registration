@@ -13,6 +13,8 @@ import modules.students.service.StudentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import global.response.ApiResponse;
+import modules.auth.enums.EnumAuthSuccess;
 
 @RestController
 @RequestMapping("api/auth")
@@ -24,32 +26,56 @@ public class AuthController {
     private final LecturerService lecturerService;
 
     @PostMapping("/register/student")
-    public ResponseEntity<StudentResponse> registerStudentExplicitly(
+    public ResponseEntity<ApiResponse<StudentResponse>> registerStudentExplicitly(
             @Valid @RequestBody RegisterStudentRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(studentService.register(request));
+        StudentResponse response = studentService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(
+                        HttpStatus.CREATED.value(),
+                        EnumAuthSuccess.REGISTER_STUDENT.getMessage(),
+                        response));
     }
 
     @PostMapping("/register/lecturer")
-    public ResponseEntity<LecturerResponse> registerLecturer(@Valid @RequestBody RegisterLecturerRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(lecturerService.register(request));
+    public ResponseEntity<ApiResponse<LecturerResponse>> registerLecturer(
+            @Valid @RequestBody RegisterLecturerRequest request) {
+        LecturerResponse response = lecturerService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(
+                        HttpStatus.CREATED.value(),
+                        EnumAuthSuccess.REGISTER_LECTURER.getMessage(),
+                        response));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        LoginResponse loginResponse = authService.loginService(loginRequest);
-        return ResponseEntity.ok(loginResponse);
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
+        LoginResponse response = authService.loginService(loginRequest);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumAuthSuccess.LOGIN.getMessage(),
+                        response));
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
-        LoginResponse loginResponse = authService.refreshToken(refreshTokenRequest);
-        return ResponseEntity.ok(loginResponse);
+    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+        LoginResponse response = authService.refreshToken(refreshTokenRequest);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumAuthSuccess.REFRESH_TOKEN.getMessage(),
+                        response));
     }
 
     // Đăng kí tài khoản Admin
     @PostMapping("/register/admin")
-    public ResponseEntity<RegisterResponse> registerAdmin(@Valid @RequestBody RegisterRequest request) {
-        RegisterResponse registerResponse = authService.registerAdmin(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(registerResponse);
+    public ResponseEntity<ApiResponse<RegisterResponse>> registerAdmin(@Valid @RequestBody RegisterRequest request) {
+        RegisterResponse response = authService.registerAdmin(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(
+                        HttpStatus.CREATED.value(),
+                        EnumAuthSuccess.REGISTER_ADMIN.getMessage(),
+                        response));
     }
 }
