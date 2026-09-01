@@ -12,7 +12,7 @@ public interface TopicRegistrationRepository extends JpaRepository<TopicRegistra
     boolean existsByStudentGroupIdAndStatusIn(Long studentGroupId,
             List<TopicRegistrationStatus> statuses);
 
-    // kiểm tra đề tài tồn tại và trạng thái như thế nào
+    // kiểm tra đề tài tồn tại và trạng thái đã đăng kí hay duyệt chưa
     boolean existsByTopicIdAndStatus(Long topicId, TopicRegistrationStatus status);
 
     List<TopicRegistration> findAllByTopicId(Long topicId);
