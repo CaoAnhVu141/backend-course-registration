@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "topic_registrations")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TopicRegistration {

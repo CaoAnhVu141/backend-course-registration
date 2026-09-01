@@ -42,37 +42,36 @@ public class TopicRegistrationService {
                 .orElseThrow(() -> new TopicRegistrationException(
                         EnumTopicRegistrationError.STUDENT_GROUP_NOT_FOUND));
 
-        if(!studentGroup.isStatus() {
+        if (!studentGroup.isStatus()) {
             throw new TopicRegistrationException(EnumTopicRegistrationError.STUDENT_GROUP_INACTIVE);
-        });
+        }
 
-    Topic topic = topicRepository.findById(cretaeTopicRegistrationRequest.getTopicId())
+        Topic topic = topicRepository.findById(cretaeTopicRegistrationRequest.getTopicId())
                 .orElseThrow(() -> new TopicRegistrationException(
                         EnumTopicRegistrationError.TOPIC_NOT_FOUND));
 
-    if(topic.getStatus()!=TopicStatus.PUBLISHED)
-    {
-        throw new TopicRegistrationException(EnumTopicRegistrationError.TOPIC_NOT_PUBLISHED);
-    }
+        if (topic.getStatus() != TopicStatus.PUBLISHED) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.TOPIC_NOT_PUBLISHED);
+        }
 
-    if(topicRegistrationRepository.existsByStudentGroupIdAndStatusIn(studentGroup.getId(),List.of(TopicRegistrationStatus.PENDING,TopicRegistrationStatus.APPROVED)))
-    {
-        throw new TopicRegistrationException(EnumTopicRegistrationError.STUDENT_GROUP_ALREADY_REGISTERED);
-    }
+        if (topicRegistrationRepository.existsByStudentGroupIdAndStatusIn(studentGroup.getId(),
+                List.of(TopicRegistrationStatus.PENDING, TopicRegistrationStatus.APPROVED))) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.STUDENT_GROUP_ALREADY_REGISTERED);
+        }
 
-    if(topicRegistrationRepository.existsByTopicIdAndStatus(topic.getId(),TopicRegistrationStatus.APPROVED))
-    {
-        throw new TopicRegistrationException(EnumTopicRegistrationError.TOPIC_ALREADY_APPROVED);
-    }
+        if (topicRegistrationRepository.existsByTopicIdAndStatus(topic.getId(), TopicRegistrationStatus.APPROVED)) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.TOPIC_ALREADY_APPROVED);
+        }
 
-    TopicRegistration topicRegistration = topicRegistrationRepository.save(
-            TopicRegistration.builder()
-                    .studentGroup(studentGroup)
-                    .topic(topic)
-                    .status(TopicRegistrationStatus.PENDING)
-                    .registeredBy(user.getEmail())
-                    .registeredAt(LocalDateTime.now())
-                    .build());return topicRegistrationMapper.toResponse(topicRegistration);
+        TopicRegistration topicRegistration = topicRegistrationRepository.save(
+                TopicRegistration.builder()
+                        .studentGroup(studentGroup)
+                        .topic(topic)
+                        .status(TopicRegistrationStatus.PENDING)
+                        .registeredBy(users.getEmail())
+                        .registeredAt(LocalDateTime.now())
+                        .build());
+        return topicRegistrationMapper.toResponse(topicRegistration);
 
     }
 
@@ -85,13 +84,74 @@ public class TopicRegistrationService {
     }
 
     @Transactional(readOnly = true)
-    public List<TopicRegistrationResponse> getTopicRegistrationByIdService(Long id) {
+    public TopicRegistrationResponse getTopicRegistrationByIdService(Long id) {
         TopicRegistration topicRegistration = findTopicRegistrationById(id);
         return topicRegistrationMapper.toResponse(topicRegistration);
     }
 
+    // Lấy theo danh sách đăng kí nhóm
+    @Transactional(readOnly = true)
+    public List<TopicRegistrationResponse> getByStudentGroupService(Long studentGroupId) {
+        return topicRegistrationRepository.findAllByStudentGroupId(studentGroupId)
+                .stream()
+                .map(topicRegistrationMapper::toResponse)
+                .toList();
+    }
+
+    // Lấy danh sách theo đề tài
+    @Transactional(readOnly = true)
+    public List<TopicRegistrationResponse> getByTopicService(Long topicId) {
+        return topicRegistrationRepository.findAllByTopicId(topicId)
+                .stream()
+                .map(topicRegistrationMapper::toResponse)
+                .toList();
+    }
+
+    // Chấp nhận đề tài đăng kí
+    public TopicRegistrationResponse approveTopicRegistrationService(Long id, String username) {
+        User user = findUserByUsername(username);
+        TopicRegistration topicRegistration = findTopicRegistrationById(id);
+        if (topicRegistration.getStatus() != TopicRegistrationStatus.PENDING) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.INVALID_TOPIC_REGISTRATION_STATUS);
+        }
+        if (topicRegistrationRepository.existsByTopicIdAndStatus(topicRegistration.getTopic().getId(),
+                TopicRegistrationStatus.APPROVED)) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.TOPIC_ALREADY_APPROVED);
+        }
+
+        topicRegistration.setStatus(TopicRegistrationStatus.APPROVED);
+        return topicRegistrationMapper.toResponse(topicRegistration);
+    }
+
+    // Từ chối đề tài đăng kí
+    @Transactional
+    public TopicRegistrationResponse rejectTopicRegistrationService(Long id,
+            RejectTopicRegistrationRequest rejectTopicRegistrationRequest,
+            String username) {
+        User user = findUserByUsername(username);
+        TopicRegistration topicRegistration = findTopicRegistrationById(id);
+        if (topicRegistration.getStatus() != TopicRegistrationStatus.PENDING) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.INVALID_TOPIC_REGISTRATION_STATUS);
+        }
+        topicRegistration.setStatus(TopicRegistrationStatus.REJECTED);
+        topicRegistration.setDecidedBy(user.getEmail());
+        topicRegistration.setRejectedReason(rejectTopicRegistrationRequest.getRejectionReason().trim());
+        return topicRegistrationMapper.toResponse(topicRegistration);
+    }
+
+    // Xóa đề tài đăng kí
+    @Transactional
+    public TopicRegistrationResponse cancelTopicRegistrationService(Long id, String username) {
+        TopicRegistration topicRegistration = findTopicRegistrationById(id);
+        if (topicRegistration.getStatus() != TopicRegistrationStatus.PENDING) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.INVALID_TOPIC_REGISTRATION_STATUS);
+        }
+        topicRegistration.setStatus(TopicRegistrationStatus.CANCELLED);
+        return topicRegistrationMapper.toResponse(topicRegistration);
+    }
+
     // function helper
-    private TopicRegistration ;findTopicRegistrationById(Long id) {
+    private TopicRegistration findTopicRegistrationById(Long id) {
         return topicRegistrationRepository.findById(id)
                 .orElseThrow(() -> new TopicRegistrationException(
                         EnumTopicRegistrationError.TOPIC_REGISTRATION_NOT_FOUND));
