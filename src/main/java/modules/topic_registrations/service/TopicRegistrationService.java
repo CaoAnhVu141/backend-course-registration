@@ -19,6 +19,8 @@ import modules.topics.enums.TopicStatus;
 import modules.topics.repository.TopicRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import modules.registration_period.entity.RegistrationPeriod;
+import modules.registration_period.repository.RegistrationPeriodRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,13 +34,15 @@ public class TopicRegistrationService {
     private final TopicRepository topicRepository;
     private final UserRepository userRepository;
     private final TopicRegistrationMapper topicRegistrationMapper;
+    private final RegistrationPeriodRepository registrationPeriodRepository;
 
     @Transactional
     public TopicRegistrationResponse createTopicRegistrationService(
-            CreateTopicRegistrationRequest cretaeTopicRegistrationRequest, String username) {
+            CreateTopicRegistrationRequest createTopicRegistrationRequest,
+            String username) {
+        User user = findUserByUsername(username);
 
-        User users = findUserByUsername(username);
-        StudentGroup studentGroup = studentGroupRepository.findById(cretaeTopicRegistrationRequest.getStudentGroupId())
+        StudentGroup studentGroup = studentGroupRepository.findById(createTopicRegistrationRequest.getStudentGroupId())
                 .orElseThrow(() -> new TopicRegistrationException(
                         EnumTopicRegistrationError.STUDENT_GROUP_NOT_FOUND));
 
@@ -46,7 +50,7 @@ public class TopicRegistrationService {
             throw new TopicRegistrationException(EnumTopicRegistrationError.STUDENT_GROUP_INACTIVE);
         }
 
-        Topic topic = topicRepository.findById(cretaeTopicRegistrationRequest.getTopicId())
+        Topic topic = topicRepository.findById(createTopicRegistrationRequest.getTopicId())
                 .orElseThrow(() -> new TopicRegistrationException(
                         EnumTopicRegistrationError.TOPIC_NOT_FOUND));
 
@@ -54,12 +58,31 @@ public class TopicRegistrationService {
             throw new TopicRegistrationException(EnumTopicRegistrationError.TOPIC_NOT_PUBLISHED);
         }
 
-        if (topicRegistrationRepository.existsByStudentGroupIdAndStatusIn(studentGroup.getId(),
+        if (!topic.getRegistrationPeriodId().equals(studentGroup.getRegistrationPeriodId())) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.TOPIC_NOT_IN_REGISTRATION_PERIOD);
+        }
+
+        RegistrationPeriod registrationPeriod = registrationPeriodRepository
+                .findById(studentGroup.getRegistrationPeriodId())
+                .orElseThrow(() -> new TopicRegistrationException(
+                        EnumTopicRegistrationError.REGISTRATION_PERIOD_NOT_FOUND));
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if (now.isBefore(registrationPeriod.getStudentRegistrationStart())
+                || now.isAfter(registrationPeriod.getStudentRegistrationEnd())) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.STUDENT_REGISTRATION_NOT_OPEN);
+        }
+
+        if (topicRegistrationRepository.existsByStudentGroupIdAndStatusIn(
+                studentGroup.getId(),
                 List.of(TopicRegistrationStatus.PENDING, TopicRegistrationStatus.APPROVED))) {
             throw new TopicRegistrationException(EnumTopicRegistrationError.STUDENT_GROUP_ALREADY_REGISTERED);
         }
 
-        if (topicRegistrationRepository.existsByTopicIdAndStatus(topic.getId(), TopicRegistrationStatus.APPROVED)) {
+        if (topicRegistrationRepository.existsByTopicIdAndStatus(
+                topic.getId(),
+                TopicRegistrationStatus.APPROVED)) {
             throw new TopicRegistrationException(EnumTopicRegistrationError.TOPIC_ALREADY_APPROVED);
         }
 
@@ -68,11 +91,11 @@ public class TopicRegistrationService {
                         .studentGroup(studentGroup)
                         .topic(topic)
                         .status(TopicRegistrationStatus.PENDING)
-                        .registeredBy(users.getEmail())
+                        .registeredBy(user.getEmail())
                         .registeredAt(LocalDateTime.now())
                         .build());
-        return topicRegistrationMapper.toResponse(topicRegistration);
 
+        return topicRegistrationMapper.toResponse(topicRegistration);
     }
 
     @Transactional(readOnly = true)
@@ -121,6 +144,8 @@ public class TopicRegistrationService {
         }
 
         topicRegistration.setStatus(TopicRegistrationStatus.APPROVED);
+        topicRegistration.setDecidedBy(user.getEmail());
+        topicRegistration.setRejectedReason(null);
         return topicRegistrationMapper.toResponse(topicRegistration);
     }
 
@@ -141,13 +166,32 @@ public class TopicRegistrationService {
     }
 
     // Xóa đề tài đăng kí
+    // @Transactional
+    // public TopicRegistrationResponse cancelTopicRegistrationService(Long id,
+    // String username) {
+    // TopicRegistration topicRegistration = findTopicRegistrationById(id);
+    // if (topicRegistration.getStatus() != TopicRegistrationStatus.PENDING) {
+    // throw new
+    // TopicRegistrationException(EnumTopicRegistrationError.INVALID_TOPIC_REGISTRATION_STATUS);
+    // }
+    // topicRegistration.setStatus(TopicRegistrationStatus.CANCELLED);
+    // return topicRegistrationMapper.toResponse(topicRegistration);
+    // }
     @Transactional
     public TopicRegistrationResponse cancelTopicRegistrationService(Long id, String username) {
+        User user = findUserByUsername(username);
         TopicRegistration topicRegistration = findTopicRegistrationById(id);
+
+        if (!topicRegistration.getRegisteredBy().equals(user.getEmail())) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.NOT_REGISTRATION_OWNER);
+        }
+
         if (topicRegistration.getStatus() != TopicRegistrationStatus.PENDING) {
             throw new TopicRegistrationException(EnumTopicRegistrationError.INVALID_TOPIC_REGISTRATION_STATUS);
         }
+
         topicRegistration.setStatus(TopicRegistrationStatus.CANCELLED);
+
         return topicRegistrationMapper.toResponse(topicRegistration);
     }
 
