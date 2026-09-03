@@ -11,7 +11,9 @@ public enum EnumTopicError {
     LECTURER_NOT_FOUND("Giảng viên không tồn tại"),
     INVALID_TOPIC_STATUS("Trạng thái đề tài không hợp lệ"),
     TOPIC_ALREADY_REJECTED("Đề tài đã bị từ chối"),
-    TOPIC_ALREADY_PUBLISHED("Đề tài đã được công bố");
+    TOPIC_ALREADY_PUBLISHED("Đề tài đã được công bố"),
+    ONLY_PENDING_TOPIC_CAN_BE_REJECTED("Chỉ đề tài đang chờ duyệt mới được từ chối"),
+    ONLY_PENDING_TOPIC_CAN_BE_APPROVED("Chỉ đề tài đang chờ duyệt mới được chấp nhận");
 
     private final String message;
 

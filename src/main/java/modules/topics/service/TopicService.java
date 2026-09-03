@@ -119,8 +119,8 @@ public class TopicService {
     @Transactional
     public TopicResponse approveTopicService(Long topicId) {
         Topic topic = findTopicById(topicId);
-        if (topic.getStatus() == TopicStatus.REJECTED) {
-            throw new TopicException(EnumTopicError.TOPIC_ALREADY_REJECTED);
+        if (topic.getStatus() != TopicStatus.PENDING) {
+            throw new TopicException(EnumTopicError.ONLY_PENDING_TOPIC_CAN_BE_APPROVED);
         }
         topic.setStatus(TopicStatus.APPROVED);
         return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
@@ -139,6 +139,10 @@ public class TopicService {
     @Transactional
     public TopicResponse rejectTopicService(Long id, String reason) {
         Topic topic = findTopicById(id);
+
+        if (topic.getStatus() != TopicStatus.PENDING) {
+            throw new TopicException(EnumTopicError.ONLY_PENDING_TOPIC_CAN_BE_REJECTED)
+        }
 
         topic.setStatus(TopicStatus.REJECTED);
         topic.setRejectionReason(reason.trim());
