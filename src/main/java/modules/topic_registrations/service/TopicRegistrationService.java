@@ -108,6 +108,7 @@ public class TopicRegistrationService {
     }
 
     // Chấp nhận đề tài đăng kí
+    @Transactional
     public TopicRegistrationResponse approveTopicRegistrationService(Long id, String username) {
         User user = findUserByUsername(username);
         TopicRegistration topicRegistration = findTopicRegistrationById(id);
