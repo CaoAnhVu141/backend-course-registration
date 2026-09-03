@@ -141,9 +141,8 @@ public class TopicService {
         Topic topic = findTopicById(id);
 
         if (topic.getStatus() != TopicStatus.PENDING) {
-            throw new TopicException(EnumTopicError.ONLY_PENDING_TOPIC_CAN_BE_REJECTED)
+            throw new TopicException(EnumTopicError.ONLY_PENDING_TOPIC_CAN_BE_REJECTED);
         }
-
         topic.setStatus(TopicStatus.REJECTED);
         topic.setRejectionReason(reason.trim());
 
