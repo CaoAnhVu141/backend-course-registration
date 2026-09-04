@@ -16,6 +16,8 @@ import modules.topics.enums.TopicStatus;
 import modules.topics.mapper.TopicMapper;
 import modules.topics.repository.TopicRepository;
 import modules.topics.repository.TopicSupervisorRepository;
+import modules.registration_period.entity.RegistrationPeriod;
+import java.time.LocalDateTime;
 
 import modules.topics.entity.TopicSupervisor;
 import modules.topics.entity.TopicSupervisorId;
@@ -39,6 +41,13 @@ public class TopicService {
     @Transactional
     public TopicResponse createTopicService(CreateTopicRequest request, String username) {
         validateReferences(request.getDepartmentId(), request.getRegistrationPeriodId());
+
+        RegistrationPeriod registrationPeriod = registrationPeriodRepository.findById(request.getRegistrationPeriodId())
+                .orElseThrow(() -> new TopicException(EnumTopicError.REGISTRATION_PERIOD_NOT_FOUND));
+        if (!registrationPeriod.isStatus()) {
+            throw new TopicException(EnumTopicError.REGISTRATION_PERIOD_INACTIVE);
+        }        
+        validateLecturerRegistrationTime(registrationPeriod);
 
         Lecturer lecturer = lecturerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new TopicException(EnumTopicError.LECTURER_NOT_FOUND));
@@ -183,5 +192,14 @@ public class TopicService {
                 .stream()
                 .map(topicSupervisor -> topicSupervisor.getLecturer().getUserId())
                 .collect(Collectors.toSet());
+    }
+
+    private void validateLecturerRegistrationTime(RegistrationPeriod registrationPeriod) {
+        LocalDateTime now = LocalDateTime.now();
+
+        if (now.isBefore(registrationPeriod.getLecturerRegistrationStart())
+                || now.isAfter(registrationPeriod.getLecturerRegistrationEnd())) {
+            throw new TopicException(EnumTopicError.LECTURER_REGISTRATION_NOT_OPEN);
+        }
     }
 }
