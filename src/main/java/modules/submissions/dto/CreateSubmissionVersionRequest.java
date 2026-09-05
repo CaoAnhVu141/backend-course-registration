@@ -10,9 +10,9 @@ import lombok.Setter;
 @Setter
 public class CreateSubmissionVersionRequest {
 
-    @NotNull(message = "Đăng kí đề tài không được để trống")
-    @Positive(message = "Đăng kí đề tài không hợp lệ")
-    private Long topicRegistrationId;
+    @NotNull(message = "Bài nộp không được để trống")
+    @Positive(message = "Bài nộp không hợp lệ")
+    private Long submissionId;
 
     @NotBlank(message = "File không được để trống")
     private String fileName;
@@ -25,7 +25,7 @@ public class CreateSubmissionVersionRequest {
 
     @NotBlank(message = "Kích thước file không được để trống")
     @Positive(message = "Kích thước file không hợp lệ")
-    private String fileSize;
+    private Long fileSize;
 
     private String changeNote;
 
