@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -75,6 +75,32 @@ public class SubmissionService {
                         .uploadedBy(user.getEmail())
                         .build());
         return submissionMapper.toSubmissionVersionResponse(submissionVersion);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SubmissionResponse> getAllSubmissionService() {
+        return submissionRepository.findAll().stream()
+                .map(submission -> submissionMapper.toResponse(
+                        submission,
+                        submissionVersionRepository.findAllBySubmissionId(submission.getId())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SubmissionResponse getSubmissionByIdService(Long submissionId) {
+        Submission submission = findSubmissionById(submissionId);
+        return submissionMapper.toResponse(
+                submission,
+                submissionVersionRepository.findAllBySubmissionId(submission.getId()));
+    }
+
+    @Transactional(readOnly = true)
+    public SubmissionResponse getSubmissionByTopicRegistrationService(Long topicRegistrationId) {
+        Submission submission = submissionRepository.findByTopicRegistrationId(topicRegistrationId)
+                .orElseThrow(() -> new SubmissionException(EnumSubmissionError.SUBMISSION_NOT_FOUND));
+        return submissionMapper.toResponse(
+                submission,
+                submissionVersionRepository.findAllBySubmissionId(submission.getId()));
     }
 
     // function hepler
