@@ -41,7 +41,8 @@ src/main/java/
     ├── student_group/                               # Module quản lý nhóm sinh viên
     ├── students/                                    # Module quản lý sinh viên
     ├── topics/                                      # Module quản lý đề tài
-    └── topic_registrations/                         # Module quản lý đăng ký đề tài
+    ├── topic_registrations/                         # Module quản lý đăng ký đề tài
+    └── submissions/                                 # Module quản lý bài nộp
 ```
 
 ### Giải thích các tầng trong module
@@ -183,6 +184,20 @@ topic_registrations/
 └── service/TopicRegistrationService.java
 ```
 > ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ đầy đủ: đăng ký đề tài (STUDENT), danh sách đăng ký, chi tiết đăng ký, danh sách theo nhóm sinh viên, danh sách theo đề tài, duyệt/từ chối (ADMIN, LECTURER), hủy đăng ký (STUDENT). Một nhóm sinh viên đăng ký một đề tài đã được công bố. Trạng thái đăng ký gồm: `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`. Lý do từ chối (`rejectedReason`) và người quyết định (`decidedBy`) được lưu vào database.
+
+#### `modules/submissions` — Quản lý bài nộp ✅ (đã hoàn thiện)
+```
+submissions/
+├── controller/SubmissionController.java
+├── dto/CreateSubmissionRequest.java, CreateSubmissionVersionRequest.java, SubmissionResponse.java, SubmissionVersionResponse.java
+├── entity/Submission.java, SubmissionVersion.java
+├── enums/EnumSubmissionError.java, EnumSubmissionSuccess.java
+├── exception/SubmissionException.java
+├── mapper/SubmissionMapper.java
+├── repository/SubmissionRepository.java, SubmissionVersionRepository.java
+└── service/SubmissionService.java
+```
+> ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ: tạo bài nộp (STUDENT), danh sách bài nộp (ADMIN, LECTURER), chi tiết bài nộp, bài nộp theo đăng ký đề tài. Một đăng ký đề tài đã được duyệt (`APPROVED`) chỉ có **một** bài nộp duy nhất. Mỗi bài nộp có thể có nhiều phiên bản (`SubmissionVersion`) lưu file báo cáo.
 
 ## 🛠️ Cách chạy dự án
 
@@ -446,6 +461,25 @@ POST /api/student-groups
 
 > **Lưu ý**: Người tạo nhóm (từ token đăng nhập) tự động được thêm vào nhóm với vai trò `LEADER`. Các thành viên trong `memberUserIds` có vai trò `MEMBER`. Tất cả thành viên phải chưa thuộc nhóm nào trong cùng kỳ đăng ký.
 
+### Bài nộp (Submissions) ✅
+
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/submissions` | Tạo bài nộp cho đăng ký đề tài | STUDENT |
+| GET | `/api/submissions` | Lấy danh sách tất cả bài nộp | ADMIN, LECTURER |
+| GET | `/api/submissions/{id}` | Lấy chi tiết bài nộp theo id | ADMIN, LECTURER, STUDENT |
+| GET | `/api/submissions/topic-registration/{topicRegistrationId}` | Lấy bài nộp theo đăng ký đề tài | ADMIN, LECTURER, STUDENT |
+
+**Ví dụ tạo bài nộp:**
+```json
+POST /api/submissions
+{
+  "topicRegistrationId": 1
+}
+```
+
+> **Lưu ý**: Chỉ đăng ký đề tài ở trạng thái `APPROVED` mới được tạo bài nộp. Mỗi đăng ký đề tài chỉ có **một** bài nộp duy nhất (nếu đã có sẽ báo lỗi). Bài nộp có thể chứa nhiều phiên bản báo cáo (`SubmissionVersion`).
+
 ## 📦 Format Response
 
 Các module dùng `ApiResponse` (students, lecturers, expertisetags, registration_period, topics) trả về format chuẩn:
@@ -478,6 +512,8 @@ Các module dùng `ApiResponse` (students, lecturers, expertisetags, registratio
 | Expertise Tags (chuyên môn) | ✅ Hoàn thiện | CRUD đầy đủ |
 | Registration Periods (kỳ đăng ký) | ✅ Hoàn thiện | CRUD đầy đủ |
 | Topics (đề tài) | ✅ Hoàn thiện | Tạo, xem, cập nhật, duyệt/từ chối/công bố, xóa. Lưu lý do từ chối |
+| Topic Registrations (đăng ký đề tài) | ✅ Hoàn thiện | Đăng ký, duyệt/từ chối/hủy, xem theo nhóm/đề tài |
+| Submissions (bài nộp) | ✅ Hoàn thiện | Tạo bài nộp, xem danh sách/chi tiết, xem theo đăng ký đề tài |
 
 > 📌 **Tính năng đang chờ phát triển / chưa hoàn thiện:**
 > - **Phân công giảng viên hướng dẫn** (`supervisorIds` hiện chưa có endpoint để gán) — chưa làm

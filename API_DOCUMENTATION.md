@@ -1043,6 +1043,164 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 
 ---
 
+# 10. 📤 Bài nộp — `/api/submissions`
+
+> Module quản lý **bài nộp** (submission) của nhóm sinh viên sau khi đăng ký đề tài được duyệt. Mỗi đăng ký đề tài đã duyệt (`APPROVED`) có **một** bài nộp duy nhất, và mỗi bài nộp có thể chứa nhiều **phiên bản báo cáo** (`SubmissionVersion`).
+
+| Method | Endpoint | Role | Mô tả |
+|--------|----------|------|-------|
+| POST | `/api/submissions` | STUDENT | Tạo bài nộp cho đăng ký đề tài |
+| GET | `/api/submissions` | ADMIN, LECTURER | Lấy danh sách tất cả bài nộp |
+| GET | `/api/submissions/{id}` | ADMIN, LECTURER, STUDENT | Lấy chi tiết bài nộp theo id |
+| GET | `/api/submissions/topic-registration/{topicRegistrationId}` | ADMIN, LECTURER, STUDENT | Lấy bài nộp theo đăng ký đề tài |
+
+---
+
+## 10.1 Tạo bài nộp
+
+- **`POST /api/submissions`** — STUDENT
+- **Body (JSON):**
+```json
+{
+  "topicRegistrationId": 1
+}
+```
+- **Giải thích field:**
+  - `topicRegistrationId` (bắt buộc): ID của đăng ký đề tài đã được duyệt (`APPROVED`).
+- **Lưu ý:**
+  - Đăng ký đề tài phải tồn tại, nếu không → lỗi `TOPIC_REGISTRATION_NOT_FOUND`.
+  - Đăng ký đề tài phải ở trạng thái `APPROVED`, nếu không → lỗi `TOPIC_REGISTRATION_NOT_APPROVED`.
+  - Mỗi đăng ký đề tài chỉ có **một** bài nộp. Nếu đã có bài nộp → lỗi `SUBMISSION_ALREADY_EXISTS`.
+  - Khi tạo, bài nộp có `status = true` và `submittedAt` = thời điểm hiện tại.
+- **Response (201):**
+```json
+{
+  "timestamp": "2026-09-06T10:00:00",
+  "status": 201,
+  "message": "Nộp phiên bản báo cáo thành công",
+  "data": {
+    "id": 1,
+    "topicRegistrationId": 1,
+    "status": true,
+    "submittedAt": "2026-09-06T10:00:00",
+    "submissionVersions": []
+  }
+}
+```
+
+---
+
+## 10.2 Lấy danh sách bài nộp
+
+- **`GET /api/submissions`** — ADMIN, LECTURER
+- **Response (200):**
+```json
+{
+  "timestamp": "2026-09-06T10:00:00",
+  "status": 200,
+  "message": "Lấy danh sách bài nộp thành công",
+  "data": [
+    {
+      "id": 1,
+      "topicRegistrationId": 1,
+      "status": true,
+      "submittedAt": "2026-09-06T10:00:00",
+      "submissionVersions": [
+        {
+          "id": 1,
+          "submissionId": 1,
+          "fileName": "bao-cao-lan-1.pdf",
+          "storageKey": "uploads/submission-1/bao-cao-lan-1.pdf",
+          "mimeType": "application/pdf",
+          "fileSize": 204800,
+          "changeNote": "Bản báo cáo lần 1",
+          "uploadedBy": "sv001@hcmute.edu.vn"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## 10.3 Lấy chi tiết bài nộp theo id
+
+- **`GET /api/submissions/{id}`** — ADMIN, LECTURER, STUDENT
+- **Path param:** `id` — ID bài nộp.
+- **Lưu ý:** Nếu bài nộp không tồn tại → lỗi `SUBMISSION_NOT_FOUND`.
+- **Response (200):** Tương tự cấu trúc `SubmissionResponse` bên dưới.
+
+---
+
+## 10.4 Lấy bài nộp theo đăng ký đề tài
+
+- **`GET /api/submissions/topic-registration/{topicRegistrationId}`** — ADMIN, LECTURER, STUDENT
+- **Path param:** `topicRegistrationId` — ID đăng ký đề tài.
+- **Lưu ý:** Nếu không có bài nộp cho đăng ký đề tài này → lỗi `SUBMISSION_NOT_FOUND`.
+- **Response (200):** Tương tự cấu trúc `SubmissionResponse` bên dưới.
+
+---
+
+## 📄 Cấu trúc `SubmissionResponse`
+
+### Bảng kiểu dữ liệu trả ra
+
+| Field | Kiểu dữ liệu | Mô tả |
+|-------|--------------|-------|
+| `id` | `Long` | ID bài nộp |
+| `topicRegistrationId` | `Long` | ID đăng ký đề tài tương ứng |
+| `status` | `boolean` | Trạng thái bài nộp (`true` = đang hoạt động) |
+| `submittedAt` | `LocalDateTime` | Thời gian tạo bài nộp (ISO-8601) |
+| `submissionVersions` | `List<SubmissionVersionResponse>` | Danh sách phiên bản báo cáo |
+
+### Cấu trúc `SubmissionVersionResponse`
+
+| Field | Kiểu dữ liệu | Mô tả |
+|-------|--------------|-------|
+| `id` | `Long` | ID phiên bản |
+| `submissionId` | `Long` | ID bài nộp chứa phiên bản |
+| `fileName` | `String` | Tên file báo cáo |
+| `storageKey` | `String` | Đường dẫn lưu file (storage) |
+| `mimeType` | `String` | Loại MIME của file |
+| `fileSize` | `Long` | Kích thước file (byte) |
+| `changeNote` | `String` | Ghi chú thay đổi của phiên bản (có thể null) |
+| `uploadedBy` | `String` | Email người nộp phiên bản |
+
+### Ví dụ response đầy đủ
+```json
+{
+  "timestamp": "2026-09-06T10:00:00",
+  "status": 200,
+  "message": "Lấy thông tin bài nộp thành công",
+  "data": {
+    "id": 1,
+    "topicRegistrationId": 1,
+    "status": true,
+    "submittedAt": "2026-09-06T10:00:00",
+    "submissionVersions": [
+      {
+        "id": 1,
+        "submissionId": 1,
+        "fileName": "bao-cao-lan-1.pdf",
+        "storageKey": "uploads/submission-1/bao-cao-lan-1.pdf",
+        "mimeType": "application/pdf",
+        "fileSize": 204800,
+        "changeNote": "Bản báo cáo lần 1",
+        "uploadedBy": "sv001@hcmute.edu.vn"
+      }
+    ]
+  }
+}
+```
+- **Giải thích field:**
+  - `status`: trạng thái bài nộp (`true` = đang hoạt động)
+  - `submittedAt`: thời gian tạo bài nộp
+  - `submissionVersions`: danh sách các phiên bản báo cáo đã nộp
+  - `uploadedBy`: email của người nộp phiên bản
+
+---
+
 # 🧭 Tóm tắt nhanh cho FE
 
 | Chức năng | Endpoint | Role |
@@ -1060,6 +1218,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | CRUD Đề tài | `/api/topics` | ADMIN / LECTURER / STUDENT |
 | Nhóm sinh viên | `/api/student-groups` | ADMIN / LECTURER / STUDENT |
 | Đăng ký đề tài | `/api/topic-registrations` | ADMIN / LECTURER / STUDENT |
+| Bài nộp | `/api/submissions` | ADMIN / LECTURER / STUDENT |
 
 ---
 
@@ -1086,3 +1245,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
    - **Sinh viên** hủy đăng ký → `PATCH /api/topic-registrations/{id}/cancel` (chỉ khi đang `PENDING`).
    - **Admin/Lecturer** duyệt/từ chối đăng ký → `PATCH /api/topic-registrations/{id}/approve|reject` (chỉ khi đang `PENDING`).
    - **Admin/Lecturer** xem danh sách đăng ký → `GET /api/topic-registrations`, theo nhóm → `GET /api/topic-registrations/student-group/{id}`, theo đề tài → `GET /api/topic-registrations/topic/{id}`.
+9. **Bài nộp (Submissions)**:
+   - **Sinh viên** tạo bài nộp → `POST /api/submissions` (đăng ký đề tài phải ở trạng thái `APPROVED`, mỗi đăng ký chỉ có 1 bài nộp).
+   - **Admin/Lecturer** xem danh sách bài nộp → `GET /api/submissions`.
+   - **Admin/Lecturer/Student** xem chi tiết bài nộp → `GET /api/submissions/{id}`, xem theo đăng ký đề tài → `GET /api/submissions/topic-registration/{topicRegistrationId}`.
