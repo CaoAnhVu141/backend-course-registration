@@ -43,3 +43,4 @@ out/
 .env
 application-local.properties
 application-local.yml
+.env.local
