@@ -15,7 +15,7 @@ public class SubmissionMapper {
         return SubmissionResponse.builder()
                 .id(submission.getId())
                 .topicRegistrationId(submission.getTopicRegistration().getId())
-                .status(submission.getStatus())
+                .status(submission.isStatus())
                 .submittedAt(submission.getSubmittedAt())
                 .submissionVersions(submissionVersions.stream().map(this::toSubmissionVersionResponse).toList())
                 .build();
