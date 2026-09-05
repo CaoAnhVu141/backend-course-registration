@@ -14,6 +14,7 @@ import modules.expertisetags.exception.ExpertiseTagException;
 import modules.registration_period.exception.RegistrationPeriodException;
 import modules.student_group.exception.StudentGroupException;
 import modules.students.exception.StudentException;
+import modules.submissions.exception.SubmissionException;
 import modules.topic_registrations.exception.TopicRegistrationException;
 import modules.topics.exception.TopicException;
 import modules.lecturers.exception.LecturerException;
@@ -118,6 +119,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TopicRegistrationException.class)
     public ResponseEntity<Map<String, Object>> handleTopicRegistrationException(
             TopicRegistrationException exception) {
+        return response(HttpStatus.CONFLICT, exception.getMessage(), null);
+    }
+
+    // Submission Exception handler
+    @ExceptionHandler(SubmissionException.class)
+    public ResponseEntity<Map<String, Object>> handleSubmissionException(SubmissionException exception) {
         return response(HttpStatus.CONFLICT, exception.getMessage(), null);
     }
 }
