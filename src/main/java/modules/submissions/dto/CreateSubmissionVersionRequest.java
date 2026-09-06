@@ -23,7 +23,7 @@ public class CreateSubmissionVersionRequest {
     @NotBlank(message = "Mime type không được để trống")
     private String mimeType;
 
-    @NotBlank(message = "Kích thước file không được để trống")
+    @NotNull(message = "Kích thước file không được để trống")
     @Positive(message = "Kích thước file không hợp lệ")
     private Long fileSize;
 
