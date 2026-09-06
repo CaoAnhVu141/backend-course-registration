@@ -1,8 +1,10 @@
 package modules.submissions.mapper;
 
+import modules.submissions.dto.SubmissionFeedbackResponse;
 import modules.submissions.dto.SubmissionResponse;
 import modules.submissions.dto.SubmissionVersionResponse;
 import modules.submissions.entity.Submission;
+import modules.submissions.entity.SubmissionFeedback;
 import modules.submissions.entity.SubmissionVersion;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +34,18 @@ public class SubmissionMapper {
                 .fileSize(submissionVersion.getFileSize())
                 .changeNote(submissionVersion.getChangeNote())
                 .uploadedBy(submissionVersion.getUploadedBy())
+                .build();
+    }
+
+    // feedback
+    public SubmissionFeedbackResponse toResponseSubmissionFeedbackResponse(SubmissionFeedback submissionFeedback) {
+        return SubmissionFeedbackResponse.builder()
+                .id(submissionFeedback.getId())
+                .submissionVersionId(submissionFeedback.getSubmissionVersion().getId())
+                .lecturerUserId(submissionFeedback.getLecturer().getUserId())
+                .lecturerEmail(submissionFeedback.getUser().getEmail())
+                .lectureCode(submissionFeedback.getLecturer().getLactureCode())
+                .comment(submissionFeedback.getComment())
                 .build();
     }
 }
