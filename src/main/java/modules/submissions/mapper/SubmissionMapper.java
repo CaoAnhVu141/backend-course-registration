@@ -43,8 +43,8 @@ public class SubmissionMapper {
                 .id(submissionFeedback.getId())
                 .submissionVersionId(submissionFeedback.getSubmissionVersion().getId())
                 .lecturerUserId(submissionFeedback.getLecturer().getUserId())
-                .lecturerEmail(submissionFeedback.getUser().getEmail())
-                .lectureCode(submissionFeedback.getLecturer().getLactureCode())
+                .lecturerEmail(submissionFeedback.getLecturer().getUser().getEmail())
+                .lecturerCode(submissionFeedback.getLecturer().getLecturerCode())
                 .comment(submissionFeedback.getComment())
                 .build();
     }

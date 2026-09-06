@@ -26,7 +26,7 @@ public class SubmissionFeedback {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    private User submissionVersion;
+    private Lecturer lecturer;
 
     @Column(name = "comment", nullable = false, columnDefinition = "TEXT")
     private String comment;
