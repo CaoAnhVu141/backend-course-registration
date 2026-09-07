@@ -3,6 +3,7 @@ package modules.submissions.controller;
 import static global.security.PermissionConstants.HAS_ANY_ROLE_ADMIN_LECTURER;
 import static global.security.PermissionConstants.HAS_ANY_ROLE_ADMIN_LECTURER_STUDENT;
 import static global.security.PermissionConstants.HAS_ROLE_STUDENT;
+import static global.security.PermissionConstants.HAS_ROLE_LECTURER;
 
 import java.util.List;
 
@@ -27,6 +28,8 @@ import modules.submissions.dto.SubmissionVersionResponse;
 import modules.submissions.entity.Submission;
 import modules.submissions.enums.EnumSubmissionSuccess;
 import modules.submissions.service.SubmissionService;
+import modules.submissions.dto.CreateSubmissionFeedbackRequest;
+import modules.submissions.dto.SubmissionFeedbackResponse;
 
 @RestController
 @RequestMapping("/api/submissions")
@@ -88,4 +91,48 @@ public class SubmissionController {
                                                 EnumSubmissionSuccess.GET_DETAIL.getMessage(), response));
         }
 
+        // Tạo feedback cho báo
+        @PreAuthorize(HAS_ROLE_LECTURER)
+        @PostMapping("/feedbacks")
+        public ResponseEntity<ApiResponse<SubmissionFeedbackResponse>> createFeedBackSubmissionController(
+                        @Valid @RequestBody CreateSubmissionFeedbackRequest request,
+                        Authentication authentication) {
+                SubmissionFeedbackResponse response = submissionService.createSubmissionFeedbackService(request,
+                                authentication.getName());
+                return ResponseEntity.status(HttpStatus.CREATED).body(
+                                ApiResponse.success(
+                                                HttpStatus.CREATED.value(),
+                                                EnumSubmissionSuccess.FEEDBACK_CREATED.getMessage(),
+                                                response));
+        }
+
+        // Lấy feedback cho version báo báo
+        @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER_STUDENT)
+        @GetMapping("/versions/{submissionVersionId}/feedbacks")
+        public ResponseEntity<ApiResponse<List<SubmissionFeedbackResponse>>> getFeedbackSubmissionByVersionIdController(
+                        @PathVariable Long submissionVersionId) {
+                List<SubmissionFeedbackResponse> response = submissionService
+                                .getFeedbacksBySubmissionVersionService(submissionVersionId);
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                HttpStatus.OK.value(),
+                                                EnumSubmissionSuccess.GET_FEEDBACKS.getMessage(),
+                                                response));
+
+        }
+
+        // Xem feedback theo lecturer
+        @PreAuthorize(HAS_ROLE_LECTURER)
+        @GetMapping("/feedbacks/me")
+        public ResponseEntity<ApiResponse<List<SubmissionFeedbackResponse>>> getFeedbackByLecturerController(
+                        Authentication authentication) {
+                List<SubmissionFeedbackResponse> response = submissionService
+                                .getMyFeedbacksService(authentication.getName());
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                HttpStatus.OK.value(),
+                                                EnumSubmissionSuccess.GET_FEEDBACKS.getMessage(),
+                                                response));
+
+        }
 }
