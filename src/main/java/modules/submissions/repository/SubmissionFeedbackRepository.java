@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface SubmissionFeedbackRepository extends JpaRepository<SubmissionFeedback, Long> {
 
-    List<SubmissionFeedback> getAllBySubmissionVersionId(Long submissionVersionId);
+    List<SubmissionFeedback> findAllBySubmissionVersionId(Long submissionVersionId);
 
     List<SubmissionFeedback> findAllByLecturerUserId(Long lecturerUserId);
 }
