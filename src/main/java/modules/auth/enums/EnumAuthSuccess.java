@@ -9,7 +9,8 @@ public enum EnumAuthSuccess {
     REGISTER_LECTURER("Đăng ký giảng viên thành công"),
     REGISTER_ADMIN("Đăng ký admin thành công"),
     LOGIN("Đăng nhập thành công"),
-    REFRESH_TOKEN("Làm mới token thành công");
+    REFRESH_TOKEN("Làm mới token thành công"),
+    LOGOUT("Đăng xuất thành công");
 
     private final String message;
 

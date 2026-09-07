@@ -113,6 +113,7 @@ public class AuthService {
                 jwtService.getAccessTokenExpiration());
     }
 
+    @Transactional
     private String createRefreshToken(User user) {
         String token = UUID.randomUUID().toString();
         RefreshToken refreshToken = RefreshToken.builder()
@@ -123,6 +124,19 @@ public class AuthService {
                 .build();
         refreshTokenRepository.save(refreshToken);
         return token;
+    }
+
+    @Transactional
+    public void logoutService(LogoutRequest logoutRequest) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(logoutRequest.getRefreshToken())
+                .orElseThrow(() -> new InvalidTokenException(EnumAuthError.INVALID_TOKEN));
+
+        if (refreshToken.isRevoked()) {
+            throw new InvalidTokenException(EnumAuthError.REVOKED_TOKEN);
+        }
+
+        refreshToken.setRevoked(true);
+        refreshTokenRepository.save(refreshToken);
     }
 
     // Hàm đăng kí tài khoản Admin
