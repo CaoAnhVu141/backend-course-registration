@@ -189,15 +189,15 @@ topic_registrations/
 ```
 submissions/
 ├── controller/SubmissionController.java
-├── dto/CreateSubmissionRequest.java, CreateSubmissionVersionRequest.java, SubmissionResponse.java, SubmissionVersionResponse.java
-├── entity/Submission.java, SubmissionVersion.java
+├── dto/CreateSubmissionRequest.java, CreateSubmissionVersionRequest.java, SubmissionResponse.java, SubmissionVersionResponse.java, CreateSubmissionFeedbackRequest.java, SubmissionFeedbackResponse.java
+├── entity/Submission.java, SubmissionVersion.java, SubmissionFeedback.java
 ├── enums/EnumSubmissionError.java, EnumSubmissionSuccess.java
 ├── exception/SubmissionException.java
 ├── mapper/SubmissionMapper.java
-├── repository/SubmissionRepository.java, SubmissionVersionRepository.java
+├── repository/SubmissionRepository.java, SubmissionVersionRepository.java, SubmissionFeedbackRepository.java
 └── service/SubmissionService.java
 ```
-> ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ: tạo bài nộp (STUDENT), danh sách bài nộp (ADMIN, LECTURER), chi tiết bài nộp, bài nộp theo đăng ký đề tài. Một đăng ký đề tài đã được duyệt (`APPROVED`) chỉ có **một** bài nộp duy nhất. Mỗi bài nộp có thể có nhiều phiên bản (`SubmissionVersion`) lưu file báo cáo.
+> ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ: tạo bài nộp (STUDENT), danh sách bài nộp (ADMIN, LECTURER), chi tiết bài nộp, bài nộp theo đăng ký đề tài, và **góp ý bài nộp** (LECTURER tạo góp ý, xem góp ý theo phiên bản / theo giảng viên). Một đăng ký đề tài đã được duyệt (`APPROVED`) chỉ có **một** bài nộp duy nhất. Mỗi bài nộp có thể có nhiều phiên bản (`SubmissionVersion`) lưu file báo cáo, và mỗi phiên bản có thể nhận nhiều góp ý (`SubmissionFeedback`) từ giảng viên.
 
 ## 🛠️ Cách chạy dự án
 
@@ -469,6 +469,9 @@ POST /api/student-groups
 | GET | `/api/submissions` | Lấy danh sách tất cả bài nộp | ADMIN, LECTURER |
 | GET | `/api/submissions/{id}` | Lấy chi tiết bài nộp theo id | ADMIN, LECTURER, STUDENT |
 | GET | `/api/submissions/topic-registration/{topicRegistrationId}` | Lấy bài nộp theo đăng ký đề tài | ADMIN, LECTURER, STUDENT |
+| POST | `/api/submissions/feedbacks` | Tạo góp ý cho phiên bản bài nộp | LECTURER |
+| GET | `/api/submissions/versions/{submissionVersionId}/feedbacks` | Lấy góp ý theo phiên bản bài nộp | ADMIN, LECTURER, STUDENT |
+| GET | `/api/submissions/feedbacks/me` | Lấy góp ý của giảng viên đang đăng nhập | LECTURER |
 
 **Ví dụ tạo bài nộp:**
 ```json
@@ -478,7 +481,7 @@ POST /api/submissions
 }
 ```
 
-> **Lưu ý**: Chỉ đăng ký đề tài ở trạng thái `APPROVED` mới được tạo bài nộp. Mỗi đăng ký đề tài chỉ có **một** bài nộp duy nhất (nếu đã có sẽ báo lỗi). Bài nộp có thể chứa nhiều phiên bản báo cáo (`SubmissionVersion`).
+> **Lưu ý**: Chỉ đăng ký đề tài ở trạng thái `APPROVED` mới được tạo bài nộp. Mỗi đăng ký đề tài chỉ có **một** bài nộp duy nhất (nếu đã có sẽ báo lỗi). Bài nộp có thể chứa nhiều phiên bản báo cáo (`SubmissionVersion`). Giảng viên có thể góp ý (`SubmissionFeedback`) cho từng phiên bản bài nộp.
 
 ## 📦 Format Response
 
@@ -513,7 +516,7 @@ Các module dùng `ApiResponse` (students, lecturers, expertisetags, registratio
 | Registration Periods (kỳ đăng ký) | ✅ Hoàn thiện | CRUD đầy đủ |
 | Topics (đề tài) | ✅ Hoàn thiện | Tạo, xem, cập nhật, duyệt/từ chối/công bố, xóa. Lưu lý do từ chối |
 | Topic Registrations (đăng ký đề tài) | ✅ Hoàn thiện | Đăng ký, duyệt/từ chối/hủy, xem theo nhóm/đề tài |
-| Submissions (bài nộp) | ✅ Hoàn thiện | Tạo bài nộp, xem danh sách/chi tiết, xem theo đăng ký đề tài |
+| Submissions (bài nộp) | ✅ Hoàn thiện | Tạo bài nộp, xem danh sách/chi tiết, xem theo đăng ký đề tài, góp ý bài nộp |
 
 > 📌 **Tính năng đang chờ phát triển / chưa hoàn thiện:**
 > - **Phân công giảng viên hướng dẫn** (`supervisorIds` hiện chưa có endpoint để gán) — chưa làm

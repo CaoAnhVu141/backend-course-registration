@@ -1053,6 +1053,9 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | GET | `/api/submissions` | ADMIN, LECTURER | Lấy danh sách tất cả bài nộp |
 | GET | `/api/submissions/{id}` | ADMIN, LECTURER, STUDENT | Lấy chi tiết bài nộp theo id |
 | GET | `/api/submissions/topic-registration/{topicRegistrationId}` | ADMIN, LECTURER, STUDENT | Lấy bài nộp theo đăng ký đề tài |
+| POST | `/api/submissions/feedbacks` | LECTURER | Tạo góp ý (feedback) cho phiên bản bài nộp |
+| GET | `/api/submissions/versions/{submissionVersionId}/feedbacks` | ADMIN, LECTURER, STUDENT | Lấy danh sách góp ý theo phiên bản bài nộp |
+| GET | `/api/submissions/feedbacks/me` | LECTURER | Lấy danh sách góp ý của giảng viên đang đăng nhập |
 
 ---
 
@@ -1142,6 +1145,89 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 
 ---
 
+## 10.5 Tạo góp ý cho phiên bản bài nộp
+
+- **`POST /api/submissions/feedbacks`** — LECTURER
+- **Body (JSON):**
+```json
+{
+  "submissionVersionId": 1,
+  "comment": "Cần bổ sung phần đánh giá kết quả thực nghiệm"
+}
+```
+- **Giải thích field:**
+  - `submissionVersionId` (bắt buộc): ID phiên bản bài nộp cần góp ý.
+  - `comment` (bắt buộc): Nội dung góp ý của giảng viên.
+- **Lưu ý:**
+  - Giảng viên được xác định từ token đăng nhập (không cần truyền `lecturerId`).
+  - Nếu giảng viên không tồn tại → lỗi `LECTURER_NOT_FOUND`.
+  - Nếu phiên bản bài nộp không tồn tại → lỗi `SUBMISSION_VERSION_NOT_FOUND`.
+- **Response (201):**
+```json
+{
+  "timestamp": "2026-09-07T10:00:00",
+  "status": 201,
+  "message": "Góp ý bài nộp thành công",
+  "data": {
+    "id": 1,
+    "submissionVersionId": 1,
+    "lecturerUserId": 2,
+    "lecturerEmail": "gv001@hcmute.edu.vn",
+    "lecturerCode": "GV001",
+    "comment": "Cần bổ sung phần đánh giá kết quả thực nghiệm"
+  }
+}
+```
+
+---
+
+## 10.6 Lấy danh sách góp ý theo phiên bản bài nộp
+
+- **`GET /api/submissions/versions/{submissionVersionId}/feedbacks`** — ADMIN, LECTURER, STUDENT
+- **Path param:** `submissionVersionId` — ID phiên bản bài nộp.
+- **Lưu ý:** Nếu phiên bản bài nộp không tồn tại → lỗi `SUBMISSION_VERSION_NOT_FOUND`.
+- **Response (200):**
+```json
+{
+  "timestamp": "2026-09-07T10:00:00",
+  "status": 200,
+  "message": "Lấy danh sách góp ý bài nộp thành công",
+  "data": [
+    {
+      "id": 1,
+      "submissionVersionId": 1,
+      "lecturerUserId": 2,
+      "lecturerEmail": "gv001@hcmute.edu.vn",
+      "lecturerCode": "GV001",
+      "comment": "Cần bổ sung phần đánh giá kết quả thực nghiệm"
+    }
+  ]
+}
+```
+
+---
+
+## 10.7 Lấy danh sách góp ý của giảng viên đang đăng nhập
+
+- **`GET /api/submissions/feedbacks/me`** — LECTURER
+- **Lưu ý:** Giảng viên được xác định từ token đăng nhập. Trả về tất cả góp ý mà giảng viên này đã viết.
+- **Response (200):** Tương tự cấu trúc `SubmissionFeedbackResponse` bên dưới (dạng danh sách).
+
+---
+
+## 📄 Cấu trúc `SubmissionFeedbackResponse`
+
+| Field | Kiểu dữ liệu | Mô tả |
+|-------|--------------|-------|
+| `id` | `Long` | ID góp ý |
+| `submissionVersionId` | `Long` | ID phiên bản bài nộp được góp ý |
+| `lecturerUserId` | `Long` | ID giảng viên viết góp ý |
+| `lecturerEmail` | `String` | Email giảng viên viết góp ý |
+| `lecturerCode` | `String` | Mã giảng viên viết góp ý |
+| `comment` | `String` | Nội dung góp ý |
+
+---
+
 ## 📄 Cấu trúc `SubmissionResponse`
 
 ### Bảng kiểu dữ liệu trả ra
@@ -1219,6 +1305,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | Nhóm sinh viên | `/api/student-groups` | ADMIN / LECTURER / STUDENT |
 | Đăng ký đề tài | `/api/topic-registrations` | ADMIN / LECTURER / STUDENT |
 | Bài nộp | `/api/submissions` | ADMIN / LECTURER / STUDENT |
+| Góp ý bài nộp | `/api/submissions/feedbacks` | LECTURER |
 
 ---
 
@@ -1249,3 +1336,5 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
    - **Sinh viên** tạo bài nộp → `POST /api/submissions` (đăng ký đề tài phải ở trạng thái `APPROVED`, mỗi đăng ký chỉ có 1 bài nộp).
    - **Admin/Lecturer** xem danh sách bài nộp → `GET /api/submissions`.
    - **Admin/Lecturer/Student** xem chi tiết bài nộp → `GET /api/submissions/{id}`, xem theo đăng ký đề tài → `GET /api/submissions/topic-registration/{topicRegistrationId}`.
+   - **Giảng viên** góp ý cho phiên bản bài nộp → `POST /api/submissions/feedbacks`, xem góp ý của mình → `GET /api/submissions/feedbacks/me`.
+   - **Admin/Lecturer/Student** xem góp ý theo phiên bản bài nộp → `GET /api/submissions/versions/{submissionVersionId}/feedbacks`.
