@@ -74,7 +74,7 @@ auth/
 └── service/AuthService.java, UserAccountService.java
 ```
 
-#### `modules/departments` — Quản lý khoa/phòng ban
+#### `modules/departments` — Quản lý khoa/phòng ban ✅
 ```
 departments/
 ├── controller/DepartmentController.java
@@ -87,7 +87,7 @@ departments/
 └── service/DepartmentService.java
 ```
 
-#### `modules/expertisetags` — Quản lý chuyên môn
+#### `modules/expertisetags` — Quản lý chuyên môn ✅
 ```
 expertisetags/
 ├── controller/ExpertiseTagController.java
@@ -142,7 +142,7 @@ student_group/
 ```
 > ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ đầy đủ: tạo nhóm (STUDENT), danh sách nhóm, danh sách nhóm theo kỳ đăng ký, chi tiết nhóm (ADMIN, LECTURER), xóa nhóm (ADMIN). Mỗi nhóm có một trưởng nhóm (`LEADER`) và các thành viên (`MEMBER`). Người tạo nhóm tự động trở thành `LEADER`.
 
-#### `modules/students` — Quản lý sinh viên
+#### `modules/students` — Quản lý sinh viên ✅
 ```
 students/
 ├── controller/StudentController.java
