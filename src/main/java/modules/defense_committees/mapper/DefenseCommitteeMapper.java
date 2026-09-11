@@ -19,19 +19,18 @@ public class DefenseCommitteeMapper {
                 .name(defenseCommittee.getName())
                 .status(defenseCommittee.getStatus())
                 .createdBy(defenseCommittee.getCreatedBy())
-                .members(members.stream().map(this::toMemberResponse).toList())
+                .committeeMembers(committeeMembers.stream().map(this::toMemberResponse).toList())
                 .build();
     }
 
-    public CommitteeMemberResponse toMemberResponse(CommitteeMember member) {
+    public CommitteeMemberResponse toMemberResponse(CommitteeMember committeeMember) {
         return CommitteeMemberResponse.builder()
-                .id(member.getId())
-                .lecturerUserId(member.getLecturer().getUserId())
-                .lecturerCode(member.getLecturer().getLecturerCode())
-                .lecturerEmail(member.getLecturer().getUser().getEmail())
-                .committeeRole(member.getCommitteeRole())
-                .joinedAt(member.getJoinedAt())
+                .id(committeeMember.getId())
+                .lecturerId(committeeMember.getLecturer().getUserId())
+                .lecturerCode(committeeMember.getLecturer().getLecturerCode())
+                .lecturerEmail(committeeMember.getLecturer().getUser().getEmail())
+                .committeeRole(committeeMember.getCommitteeRole())
+                .joinedAt(committeeMember.getJoinedAt())
                 .build();
-
     }
 }

@@ -6,12 +6,16 @@ import modules.defense_committees.entity.CommitteeMember;
 
 public interface CommitteeMemberRepository extends JpaRepository<CommitteeMember, Long> {
 
-    boolean existsByLecturerIdAndDefenseCommitteeId(Long userId, Long defenseCommitteeId);
+    // kiểm tra xem giảng viên đã là thành viên của hội đồng bảo vệ nào chưa
+    boolean existsByLecturerUserIdAndDefenseCommitteeId(Long userId, Long defenseCommitteeId);
 
-    List<CommitteeMember> findAllByDefenseCommitteeId(Long defenseCommitteeId, Long userId);
+    // danh sách trong hội đồng
+    List<CommitteeMember> findAllByDefenseCommitteeId(Long defenseCommitteeId);
 
-    List<CommitteeMember> findAllByLecturerId(Long lecturerId);
+    // lấy theo giảng viên
+    List<CommitteeMember> findAllByLecturerUserId(Long lecturerId);
 
+    // xoá toàn bộ thành viên trong hội đồng
     void deleteAllByDefenseCommitteeId(Long defenseCommitteeId);
 
 }
