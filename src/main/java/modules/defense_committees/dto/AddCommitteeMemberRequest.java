@@ -15,6 +15,5 @@ public class AddCommitteeMemberRequest {
     private Long lecturerId;
 
     @NotNull(message = "Vai trò không được để trống")
-    @Positive(message = "Vai trò không hợp lệ")
     private CommitteeRole committeeRole;
 }
