@@ -1287,6 +1287,252 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 
 ---
 
+# 11. 🛡️ Hội đồng bảo vệ — `/api/defense-committees`
+
+> Module quản lý **hội đồng bảo vệ** (defense committee). Mỗi hội đồng thuộc một kỳ đăng ký và gồm nhiều **thành viên** (`CommitteeMember`) là giảng viên, mỗi người giữ một vai trò trong hội đồng.
+
+| Method | Endpoint | Role | Mô tả |
+|--------|----------|------|-------|
+| POST | `/api/defense-committees` | ADMIN | Tạo hội đồng bảo vệ |
+| POST | `/api/defense-committees/{id}/members` | ADMIN | Thêm thành viên vào hội đồng |
+| GET | `/api/defense-committees` | ADMIN, LECTURER | Lấy danh sách tất cả hội đồng |
+| GET | `/api/defense-committees/{id}` | ADMIN, LECTURER | Lấy chi tiết hội đồng theo id |
+| GET | `/api/defense-committees/registration-period/{registrationPeriodId}` | ADMIN, LECTURER | Lấy danh sách hội đồng theo kỳ đăng ký |
+| GET | `/api/defense-committees/me` | LECTURER | Lấy danh sách hội đồng mà giảng viên đang đăng nhập thuộc về |
+| PATCH | `/api/defense-committees/{id}/close` | ADMIN | Đóng hội đồng |
+
+---
+
+## 11.1 Tạo hội đồng bảo vệ
+
+- **`POST /api/defense-committees`** — ADMIN
+- **Body (JSON):**
+```json
+{
+  "registrationPeriodId": 1,
+  "code": "HD01",
+  "name": "Hội đồng bảo vệ số 1"
+}
+```
+- **Giải thích field:**
+  - `registrationPeriodId` (bắt buộc): ID kỳ đăng ký mà hội đồng thuộc về.
+  - `code` (bắt buộc, tối đa 50 ký tự): mã hội đồng, **không được trùng**.
+  - `name` (bắt buộc, tối đa 100 ký tự): tên hội đồng.
+- **Lưu ý:**
+  - Kỳ đăng ký phải tồn tại, nếu không → lỗi `REGISTRATION_PERIOD_NOT_FOUND`.
+  - Mã hội đồng không được trùng, nếu trùng → lỗi `DEFENSE_COMMITTEE_CODE_EXISTS`.
+  - Người tạo được xác định từ token đăng nhập; `createdBy` lưu email người tạo.
+  - Hội đồng mới tạo có `status = ACTIVE` và chưa có thành viên.
+- **Response (201):**
+```json
+{
+  "timestamp": "2026-09-15T10:00:00",
+  "status": 201,
+  "message": "Tạo hội đồng thành công",
+  "data": {
+    "id": 1,
+    "registrationPeriodId": 1,
+    "code": "HD01",
+    "name": "Hội đồng bảo vệ số 1",
+    "status": "ACTIVE",
+    "createdBy": "admin@hcmute.edu.vn",
+    "committeeMembers": []
+  }
+}
+```
+
+---
+
+## 11.2 Thêm thành viên vào hội đồng
+
+- **`POST /api/defense-committees/{id}/members`** — ADMIN
+- **Path param:** `id` — ID hội đồng.
+- **Body (JSON):**
+```json
+{
+  "lecturerId": 5,
+  "committeeRole": "CHAIRMAN"
+}
+```
+- **Giải thích field:**
+  - `lecturerId` (bắt buộc): ID giảng viên được thêm vào hội đồng.
+  - `committeeRole` (bắt buộc): vai trò trong hội đồng — `MEMBER`, `REVIEWER`, `CHAIRMAN`, `SECRETARY`.
+- **Lưu ý:**
+  - Hội đồng phải tồn tại, nếu không → lỗi `DEFENSE_COMMITTEE_NOT_FOUND`.
+  - Hội đồng ở trạng thái `CLOSED` không thể thêm thành viên → lỗi `DEFENSE_COMMITTEE_CLOSED`.
+  - Giảng viên phải tồn tại, nếu không → lỗi `LECTURER_NOT_FOUND`.
+  - Một giảng viên không thể thuộc cùng một hội đồng hai lần → lỗi `COMMITTEE_MEMBER_ALREADY_EXISTS`.
+  - `joinedAt` được gán tự động bằng thời điểm hiện tại.
+- **Response (201):**
+```json
+{
+  "timestamp": "2026-09-15T10:05:00",
+  "status": 201,
+  "message": "Thêm thành viên hội đồng thành công",
+  "data": {
+    "id": 1,
+    "registrationPeriodId": 1,
+    "code": "HD01",
+    "name": "Hội đồng bảo vệ số 1",
+    "status": "ACTIVE",
+    "createdBy": "admin@hcmute.edu.vn",
+    "committeeMembers": [
+      {
+        "id": 1,
+        "lecturerId": 5,
+        "lecturerCode": "GV001",
+        "lecturerEmail": "gv001@hcmute.edu.vn",
+        "committeeRole": "CHAIRMAN",
+        "joinedAt": "2026-09-15T10:05:00"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 11.3 Lấy danh sách tất cả hội đồng
+
+- **`GET /api/defense-committees`** — ADMIN, LECTURER
+- **Response (200):**
+```json
+{
+  "timestamp": "2026-09-15T10:10:00",
+  "status": 200,
+  "message": "Lấy danh sách hội đồng thành công",
+  "data": [
+    {
+      "id": 1,
+      "registrationPeriodId": 1,
+      "code": "HD01",
+      "name": "Hội đồng bảo vệ số 1",
+      "status": "ACTIVE",
+      "createdBy": "admin@hcmute.edu.vn",
+      "committeeMembers": []
+    }
+  ]
+}
+```
+
+---
+
+## 11.4 Lấy chi tiết hội đồng theo id
+
+- **`GET /api/defense-committees/{id}`** — ADMIN, LECTURER
+- **Path param:** `id` — ID hội đồng.
+- **Lưu ý:** Nếu hội đồng không tồn tại → lỗi `DEFENSE_COMMITTEE_NOT_FOUND`.
+- **Response (200):** Tương tự cấu trúc `DefenseCommitteeResponse` bên dưới.
+
+---
+
+## 11.5 Lấy danh sách hội đồng theo kỳ đăng ký
+
+- **`GET /api/defense-committees/registration-period/{registrationPeriodId}`** — ADMIN, LECTURER
+- **Path param:** `registrationPeriodId` — ID kỳ đăng ký.
+- **Response (200):** Danh sách `DefenseCommitteeResponse` thuộc kỳ đăng ký đó.
+
+---
+
+## 11.6 Lấy danh sách hội đồng của giảng viên đang đăng nhập
+
+- **`GET /api/defense-committees/me`** — LECTURER
+- **Lưu ý:**
+  - Giảng viên được xác định từ token đăng nhập (không cần truyền id).
+  - Nếu giảng viên không tồn tại → lỗi `LECTURER_NOT_FOUND`.
+  - Trả về danh sách **thành viên hội đồng** (`CommitteeMemberResponse`) mà giảng viên này thuộc về.
+- **Response (200):**
+```json
+{
+  "timestamp": "2026-09-15T10:15:00",
+  "status": 200,
+  "message": "Lấy thông tin hội đồng thành công",
+  "data": [
+    {
+      "id": 1,
+      "lecturerId": 5,
+      "lecturerCode": "GV001",
+      "lecturerEmail": "gv001@hcmute.edu.vn",
+      "committeeRole": "CHAIRMAN",
+      "joinedAt": "2026-09-15T10:05:00"
+    }
+  ]
+}
+```
+
+---
+
+## 11.7 Đóng hội đồng
+
+- **`PATCH /api/defense-committees/{id}/close`** — ADMIN
+- **Path param:** `id` — ID hội đồng.
+- **Lưu ý:**
+  - Hội đồng phải tồn tại, nếu không → lỗi `DEFENSE_COMMITTEE_NOT_FOUND`.
+  - Sau khi đóng, `status` chuyển thành `CLOSED` và **không thể thêm thành viên** nữa.
+- **Response (200):**
+```json
+{
+  "timestamp": "2026-09-15T10:20:00",
+  "status": 200,
+  "message": "Đóng hội đồng thành công",
+  "data": {
+    "id": 1,
+    "registrationPeriodId": 1,
+    "code": "HD01",
+    "name": "Hội đồng bảo vệ số 1",
+    "status": "CLOSED",
+    "createdBy": "admin@hcmute.edu.vn",
+    "committeeMembers": []
+  }
+}
+```
+
+---
+
+## 📄 Cấu trúc `DefenseCommitteeResponse`
+
+| Field | Kiểu dữ liệu | Mô tả |
+|-------|--------------|-------|
+| `id` | `Long` | ID hội đồng |
+| `registrationPeriodId` | `Long` | ID kỳ đăng ký mà hội đồng thuộc về |
+| `code` | `String` | Mã hội đồng (duy nhất) |
+| `name` | `String` | Tên hội đồng |
+| `status` | `DefenseCommitteeStatus` | Trạng thái hội đồng |
+| `createdBy` | `String` | Email người tạo hội đồng |
+| `committeeMembers` | `List<CommitteeMemberResponse>` | Danh sách thành viên hội đồng |
+
+### Cấu trúc `CommitteeMemberResponse`
+
+| Field | Kiểu dữ liệu | Mô tả |
+|-------|--------------|-------|
+| `id` | `Long` | ID thành viên hội đồng |
+| `lecturerId` | `Long` | ID giảng viên |
+| `lecturerCode` | `String` | Mã giảng viên |
+| `lecturerEmail` | `String` | Email giảng viên |
+| `committeeRole` | `CommitteeRole` | Vai trò trong hội đồng |
+| `joinedAt` | `LocalDateTime` | Thời gian tham gia hội đồng (ISO-8601) |
+
+### Các giá trị enum
+
+**`DefenseCommitteeStatus`** — trạng thái hội đồng:
+
+| Giá trị | Mô tả |
+|---------|-------|
+| `ACTIVE` | Đang hoạt động |
+| `INACTIVE` | Ngừng hoạt động |
+| `CLOSED` | Đã đóng (không thể thêm thành viên) |
+
+**`CommitteeRole`** — vai trò thành viên hội đồng:
+
+| Giá trị | Mô tả |
+|---------|-------|
+| `MEMBER` | Thành viên |
+| `REVIEWER` | Phản biện |
+| `CHAIRMAN` | Chủ tịch hội đồng |
+| `SECRETARY` | Thư ký |
+
+---
+
 # 🧭 Tóm tắt nhanh cho FE
 
 | Chức năng | Endpoint | Role |
@@ -1306,6 +1552,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | Đăng ký đề tài | `/api/topic-registrations` | ADMIN / LECTURER / STUDENT |
 | Bài nộp | `/api/submissions` | ADMIN / LECTURER / STUDENT |
 | Góp ý bài nộp | `/api/submissions/feedbacks` | LECTURER |
+| Hội đồng bảo vệ | `/api/defense-committees` | ADMIN / LECTURER |
 
 ---
 
