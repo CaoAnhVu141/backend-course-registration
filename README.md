@@ -34,6 +34,7 @@ src/main/java/
 │       └── SecurityConfig.java                      # Cấu hình Spring Security
 └── modules/
     ├── auth/                                        # Module xác thực & phân quyền
+    ├── defense_committees/                          # Module quản lý hội đồng bảo vệ
     ├── departments/                                 # Module quản lý khoa/phòng ban
     ├── expertisetags/                               # Module quản lý chuyên môn
     ├── lecturers/                                   # Module quản lý giảng viên
@@ -73,6 +74,20 @@ auth/
 ├── security/CustomUserDetailsService.java
 └── service/AuthService.java, UserAccountService.java
 ```
+
+#### `modules/defense_committees` — Quản lý hội đồng bảo vệ ✅ (đã hoàn thiện)
+```
+defense_committees/
+├── controller/DefenseCommitteeController.java
+├── dto/CreateDefenseCommitteeRequest.java, AddCommitteeMemberRequest.java, DefenseCommitteeResponse.java, CommitteeMemberResponse.java
+├── entity/DefenseCommittee.java, CommitteeMember.java
+├── enums/EnumDefenseCommitteeError.java, EnumDefenseCommitteeSuccess.java, DefenseCommitteeStatus.java, CommitteeRole.java
+├── exception/DefenseCommitteeException.java
+├── mapper/DefenseCommitteeMapper.java
+├── repository/DefenseCommitteeRepository.java, CommitteeMemberRepository.java
+└── service/DefenseCommitteeService.java
+```
+> ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ: tạo hội đồng (ADMIN), thêm thành viên hội đồng (ADMIN), danh sách hội đồng, chi tiết hội đồng, danh sách hội đồng theo kỳ đăng ký, giảng viên xem hội đồng mình thuộc về (LECTURER), đóng hội đồng (ADMIN). Trạng thái hội đồng gồm: `ACTIVE`, `INACTIVE`, `CLOSED`. Vai trò thành viên gồm: `MEMBER`, `REVIEWER`, `CHAIRMAN`, `SECRETARY`. Một giảng viên không thể thuộc cùng một hội đồng hai lần.
 
 #### `modules/departments` — Quản lý khoa/phòng ban ✅
 ```
@@ -483,6 +498,39 @@ POST /api/submissions
 
 > **Lưu ý**: Chỉ đăng ký đề tài ở trạng thái `APPROVED` mới được tạo bài nộp. Mỗi đăng ký đề tài chỉ có **một** bài nộp duy nhất (nếu đã có sẽ báo lỗi). Bài nộp có thể chứa nhiều phiên bản báo cáo (`SubmissionVersion`). Giảng viên có thể góp ý (`SubmissionFeedback`) cho từng phiên bản bài nộp.
 
+### Hội đồng bảo vệ (Defense Committees) ✅
+
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/defense-committees` | Tạo hội đồng bảo vệ | ADMIN |
+| POST | `/api/defense-committees/{id}/members` | Thêm thành viên vào hội đồng | ADMIN |
+| GET | `/api/defense-committees` | Lấy danh sách tất cả hội đồng | ADMIN, LECTURER |
+| GET | `/api/defense-committees/{id}` | Lấy chi tiết hội đồng theo id | ADMIN, LECTURER |
+| GET | `/api/defense-committees/registration-period/{registrationPeriodId}` | Lấy danh sách hội đồng theo kỳ đăng ký | ADMIN, LECTURER |
+| GET | `/api/defense-committees/me` | Lấy danh sách hội đồng mà giảng viên đang đăng nhập thuộc về | LECTURER |
+| PATCH | `/api/defense-committees/{id}/close` | Đóng hội đồng | ADMIN |
+
+**Ví dụ tạo hội đồng:**
+```json
+POST /api/defense-committees
+{
+  "registrationPeriodId": 1,
+  "code": "HD01",
+  "name": "Hội đồng bảo vệ số 1"
+}
+```
+
+**Ví dụ thêm thành viên vào hội đồng:**
+```json
+POST /api/defense-committees/1/members
+{
+  "lecturerId": 5,
+  "committeeRole": "CHAIRMAN"
+}
+```
+
+> **Lưu ý**: Hội đồng ở trạng thái `CLOSED` không thể thêm thành viên. Một giảng viên không thể được thêm vào cùng một hội đồng hai lần. Trạng thái hội đồng: `ACTIVE` (đang hoạt động), `INACTIVE` (ngừng hoạt động), `CLOSED` (đã đóng). Vai trò thành viên: `MEMBER`, `REVIEWER`, `CHAIRMAN`, `SECRETARY`.
+
 ## 📦 Format Response
 
 Các module dùng `ApiResponse` (students, lecturers, expertisetags, registration_period, topics) trả về format chuẩn:
@@ -517,6 +565,7 @@ Các module dùng `ApiResponse` (students, lecturers, expertisetags, registratio
 | Topics (đề tài) | ✅ Hoàn thiện | Tạo, xem, cập nhật, duyệt/từ chối/công bố, xóa. Lưu lý do từ chối |
 | Topic Registrations (đăng ký đề tài) | ✅ Hoàn thiện | Đăng ký, duyệt/từ chối/hủy, xem theo nhóm/đề tài |
 | Submissions (bài nộp) | ✅ Hoàn thiện | Tạo bài nộp, xem danh sách/chi tiết, xem theo đăng ký đề tài, góp ý bài nộp |
+| Defense Committees (hội đồng bảo vệ) | ✅ Hoàn thiện | Tạo hội đồng, thêm thành viên, xem danh sách/chi tiết, xem theo kỳ đăng ký, xem hội đồng của tôi, đóng hội đồng |
 
 > 📌 **Tính năng đang chờ phát triển / chưa hoàn thiện:**
 > - **Phân công giảng viên hướng dẫn** (`supervisorIds` hiện chưa có endpoint để gán) — chưa làm

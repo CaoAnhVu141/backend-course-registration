@@ -61,7 +61,7 @@ public class DefenseCommitteeController {
     }
 
     @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
-    @GetMapping
+    @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<DefenseCommitteeResponse>> getDefenseCommitteeByIdController(
             @PathVariable Long id) {
         DefenseCommitteeResponse response = defenseCommitteeService.getDefenseCommitteByIdService(id);
