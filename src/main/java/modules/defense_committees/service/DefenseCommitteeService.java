@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import modules.auth.entity.User;
 import modules.auth.repository.UserRepository;
 import modules.defense_committees.dto.AddCommitteeMemberRequest;
+import modules.defense_committees.dto.CommitteeMemberResponse;
 import modules.defense_committees.dto.CreateDefenseCommitteeRequest;
 import modules.defense_committees.dto.DefenseCommitteeResponse;
 import modules.defense_committees.entity.DefenseCommittee;
@@ -100,6 +101,43 @@ public class DefenseCommitteeService {
                 .toList();
     }
 
+    // Lấy theo kì đăng kí
+    @Transactional(readOnly = true)
+    public List<DefenseCommitteeResponse> getAllByRegistrationPeriodService(Long registrationPeriodId) {
+        return defenseCommitteeRepository.findAllByRegistrationPeriodId(registrationPeriodId).stream().map(
+                defenseCommittee -> defenseCommitteeMapper
+                        .toResponse(defenseCommittee,
+                                committeeMemberRepository.findAllByDefenseCommitteeId(defenseCommittee.getId())))
+                .toList();
+    }
+
+    // xem chi tiết
+    @Transactional(readOnly = true)
+    public DefenseCommitteeResponse getDefenseCommitteByIdService(Long id) {
+        DefenseCommittee defenseCommittee = findDefenseCommitteeById(id);
+        return defenseCommitteeMapper.toResponse(defenseCommittee,
+                committeeMemberRepository.findAllByDefenseCommitteeId(defenseCommittee.getId()));
+    }
+
+    // giảng viên xem mình thuộc hội đồng nào
+    @Transactional(readOnly = true)
+    public List<CommitteeMemberResponse> getMyCommitteeMembersService(String username) {
+        Lecturer lecturer = lecturerRepository.findByUserUsername(username)
+                .orElseThrow(() -> new DefenseCommitteeException(EnumDefenseCommitteeError.LECTURER_NOT_FOUND));
+        return committeeMemberRepository.findAllByLecturerUserId(lecturer.getUserId())
+                .stream().map(defenseCommitteeMapper::toMemberResponse).toList();
+    }
+
+    // đóng hội đồng
+    public DefenseCommitteeResponse closeDefenseCommitteeService(Long id) {
+        DefenseCommittee defenseCommittee = findDefenseCommitteeById(id);
+        defenseCommittee.setStatus(DefenseCommitteeStatus.CLOSED);
+        return defenseCommitteeMapper.toResponse(
+                defenseCommittee,
+                committeeMemberRepository.findAllByDefenseCommitteeId(defenseCommittee.getId()));
+    }
+
+    // function helper
     private DefenseCommittee findDefenseCommitteeById(Long id) {
         return defenseCommitteeRepository.findById(id)
                 .orElseThrow(() -> new DefenseCommitteeException(
