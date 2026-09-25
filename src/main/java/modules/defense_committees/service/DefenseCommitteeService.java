@@ -66,6 +66,7 @@ public class DefenseCommitteeService {
     }
 
     // thêm thành viên hội đồng
+    @Transactional
     public DefenseCommitteeResponse createMemberCommitteeService(Long defenseCommitteeId,
             AddCommitteeMemberRequest addCommitteeMemberRequest) {
         DefenseCommittee defenseCommittee = findDefenseCommitteeById(defenseCommitteeId);
@@ -129,6 +130,7 @@ public class DefenseCommitteeService {
     }
 
     // đóng hội đồng
+    @Transactional
     public DefenseCommitteeResponse closeDefenseCommitteeService(Long id) {
         DefenseCommittee defenseCommittee = findDefenseCommitteeById(id);
         defenseCommittee.setStatus(DefenseCommitteeStatus.CLOSED);
