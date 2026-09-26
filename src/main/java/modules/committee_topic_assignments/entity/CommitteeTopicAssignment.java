@@ -3,6 +3,9 @@ package modules.committee_topic_assignments.entity;
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import lombok.*;
+import modules.committee_topic_assignments.enums.CommitteeTopicAssignmentStatus;
+import modules.defense_committees.entity.DefenseCommittee;
+import modules.topic_registrations.entity.TopicRegistration;
 
 @Entity
 @Table(name = "committee_topic_assignments", uniqueConstraints = @UniqueConstraint(columnNames = {
