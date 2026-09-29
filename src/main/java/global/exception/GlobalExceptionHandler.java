@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import modules.auth.exception.InvalidCredentialsException;
 import modules.auth.exception.InvalidTokenException;
+import modules.committee_topic_assignments.exception.CommitteeTopicAssignmentException;
 import modules.defense_committees.exception.DefenseCommitteeException;
 import modules.departments.exceptions.DepartmentException;
 import modules.expertisetags.exception.ExpertiseTagException;
@@ -133,6 +134,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DefenseCommitteeException.class)
     public ResponseEntity<Map<String, Object>> handleDefenseCommitteeException(
             DefenseCommitteeException exception) {
+        return response(HttpStatus.CONFLICT, exception.getMessage(), null);
+    }
+
+    // CommitteeTopicAssignment Exception handler
+    @ExceptionHandler(CommitteeTopicAssignmentException.class)
+    public ResponseEntity<Map<String, Object>> handleCommitteeTopicAssignmentException(
+            CommitteeTopicAssignmentException exception) {
         return response(HttpStatus.CONFLICT, exception.getMessage(), null);
     }
 }
