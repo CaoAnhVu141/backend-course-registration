@@ -1492,6 +1492,21 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 
 > Gán một **đăng ký đề tài đã duyệt** cho một **hội đồng bảo vệ**, kèm lịch + phòng bảo vệ.
 > Mỗi đăng ký đề tài chỉ được phân công cho **đúng một** hội đồng.
+> Module **phân công hội đồng chấm đề tài** (committee topic assignment). Gán một đăng ký đề tài đã duyệt cho một hội đồng bảo vệ, kèm lịch + phòng. Mỗi đăng ký đề tài chỉ được phân công cho đúng một hội đồng.
+
+| Method | Endpoint | Role | Mô tả | Trạng thái |
+|--------|----------|------|-------|:----------:|
+| POST | `/api/committee-topic-assignments` | ADMIN | Phân công đề tài cho hội đồng | ✅ |
+| PUT | `/api/committee-topic-assignments/{id}/schedule` | ADMIN | Cập nhật lịch + phòng bảo vệ | ✅ |
+| PATCH | `/api/committee-topic-assignments/{id}/complete` | ADMIN | Xác nhận đã bảo vệ xong | ❌ |
+| PATCH | `/api/committee-topic-assignments/{id}/cancel` | ADMIN | Huỷ phân công | ❌ |
+| GET | `/api/committee-topic-assignments` | ADMIN, LECTURER | Lấy danh sách tất cả phân công | ❌ |
+| GET | `/api/committee-topic-assignments/{id}` | ADMIN, LECTURER | Lấy chi tiết phân công theo id | ❌ |
+| GET | `/api/committee-topic-assignments/defense-committee/{defenseCommitteeId}` | ADMIN, LECTURER | Danh sách đề tài mà một hội đồng chấm | ❌ |
+| GET | `/api/committee-topic-assignments/registration-period/{registrationPeriodId}` | ADMIN, LECTURER | Danh sách phân công theo kỳ đăng ký | ❌ |
+| GET | `/api/committee-topic-assignments/me` | LECTURER | Lịch chấm của các hội đồng giảng viên tham gia | ❌ |
+| GET | `/api/committee-topic-assignments/my-group` | STUDENT | Lịch bảo vệ của nhóm sinh viên | ❌ |
+
 
 ## X.1 Tạo phân công (gán đề tài cho hội đồng)
 - **`POST /api/committee-topic-assignments`** — Role: `ADMIN`
