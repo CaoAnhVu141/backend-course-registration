@@ -161,6 +161,18 @@ public class CommitteeTopicAssignmentService {
                 return committeeTopicAssignmentMapper.toResponse(committeeTopicAssignment);
         }
 
+        // xác nhận đẫ bảo vệ xong
+        @Transactional
+        public CommitteeTopicAssignmentResponse completeCommitteeTopicAssignmentService(Long id) {
+                CommitteeTopicAssignment committeeTopicAssignment = findCommitteeTopicAssignmentById(id);
+                if (committeeTopicAssignment.getStatus() != CommitteeTopicAssignmentStatus.ASSIGNED) {
+                        throw new CommitteeTopicAssignmentException(
+                                        EnumCommitteeTopicAssignmentError.INVALID_ASSIGNMENT_STATUS);
+                }
+                committeeTopicAssignment.setStatus(CommitteeTopicAssignmentStatus.COMPLETED);
+                return committeeTopicAssignmentMapper.toResponse(committeeTopicAssignment);
+        }
+
         // function helper
         private DefenseCommittee findDefenseCommitteeById(Long id) {
                 return defenseCommitteeRepository.findById(id).orElseThrow(() -> new CommitteeTopicAssignmentException(
