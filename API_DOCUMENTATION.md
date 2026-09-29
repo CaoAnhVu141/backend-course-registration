@@ -1486,6 +1486,103 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
   }
 }
 ```
+---
+
+# X. 🏛️ Phân công hội đồng chấm đề tài — `/api/committee-topic-assignments`
+
+> Gán một **đăng ký đề tài đã duyệt** cho một **hội đồng bảo vệ**, kèm lịch + phòng bảo vệ.
+> Mỗi đăng ký đề tài chỉ được phân công cho **đúng một** hội đồng.
+
+## X.1 Tạo phân công (gán đề tài cho hội đồng)
+- **`POST /api/committee-topic-assignments`** — Role: `ADMIN`
+- **Body (JSON):**
+```json
+{
+  "defenseCommitteeId": 1,
+  "topicRegistrationId": 1,
+  "scheduledStart": "2026-12-20T08:00:00",
+  "scheduledEnd": "2026-12-20T09:00:00",
+  "room": "A5-101"
+}
+```
+- **Giải thích field:**
+
+| Field | Kiểu | Bắt buộc | Mô tả |
+|-------|------|----------|-------|
+| `defenseCommitteeId` | `Long` | ✅ | ID hội đồng bảo vệ |
+| `topicRegistrationId` | `Long` | ✅ | ID đăng ký đề tài (phải ở trạng thái `APPROVED`) |
+| `scheduledStart` | `LocalDateTime` | ❌ | Giờ bắt đầu bảo vệ. Bỏ trống nếu phân công trước, xếp lịch sau |
+| `scheduledEnd` | `LocalDateTime` | ❌ | Giờ kết thúc bảo vệ |
+| `room` | `String` | ❌ | Phòng bảo vệ (tối đa 100 ký tự) |
+
+- **Điều kiện phân công hợp lệ:**
+  - Hội đồng tồn tại, **chưa `CLOSED`**, và **đã có thành viên vai trò `CHAIRMAN`**.
+  - Đăng ký đề tài tồn tại và đang `APPROVED`.
+  - Hội đồng và đề tài **cùng một kỳ đăng ký**.
+  - Đăng ký đề tài chưa từng được phân công.
+  - Giảng viên hướng dẫn của đề tài **không** nằm trong hội đồng chấm.
+  - Nếu có nhập lịch: `scheduledEnd` sau `scheduledStart`, và `scheduledStart` **không sớm hơn `defense_date` của kỳ**; phòng không trùng giờ với lịch khác.
+- **Response (201):** `CommitteeTopicAssignmentResponse`
+
+## X.2 Cập nhật lịch bảo vệ (giờ + phòng)
+- **`PUT /api/committee-topic-assignments/{id}/schedule`** — Role: `ADMIN`
+- **Body (JSON):** (cả 3 field **bắt buộc**)
+```json
+{
+  "scheduledStart": "2026-12-20T08:00:00",
+  "scheduledEnd": "2026-12-20T09:00:00",
+  "room": "A5-101"
+}
+```
+- **Điều kiện:** phân công phải đang ở trạng thái `ASSIGNED`; ràng buộc thời gian & phòng giống mục X.1.
+- **Response (200):** `CommitteeTopicAssignmentResponse`
+
+## X.3 Cấu trúc `CommitteeTopicAssignmentResponse`
+
+| Field | Kiểu | Mô tả |
+|-------|------|-------|
+| `id` | `Long` | ID phân công |
+| `defenseCommitteeId` | `Long` | ID hội đồng |
+| `defenseCommitteeCode` | `String` | Mã hội đồng |
+| `defenseCommitteeName` | `String` | Tên hội đồng |
+| `registrationPeriodId` | `Long` | ID kỳ đăng ký |
+| `topicRegistrationId` | `Long` | ID đăng ký đề tài |
+| `topicId` | `Long` | ID đề tài |
+| `topicTitle` | `String` | Tên đề tài |
+| `studentGroupId` | `Long` | ID nhóm sinh viên |
+| `studentGroupName` | `String` | Tên nhóm sinh viên |
+| `scheduledStart` | `LocalDateTime` | Giờ bắt đầu bảo vệ (ISO-8601) |
+| `scheduledEnd` | `LocalDateTime` | Giờ kết thúc bảo vệ (ISO-8601) |
+| `room` | `String` | Phòng bảo vệ |
+| `status` | `CommitteeTopicAssignmentStatus` | Trạng thái phân công |
+| `assignedBy` | `String` | Email người phân công |
+| `assignedAt` | `LocalDateTime` | Thời gian phân công (ISO-8601) |
+
+## X.4 Enum `CommitteeTopicAssignmentStatus`
+
+| Giá trị | Mô tả |
+|---------|-------|
+| `ASSIGNED` | Đã phân công, đang chờ bảo vệ |
+| `COMPLETED` | Đã bảo vệ xong |
+| `CANCELED` | Đã huỷ phân công |
+
+## X.5 Các lỗi thường gặp (HTTP 409)
+
+| Message | Nguyên nhân |
+|---------|-------------|
+| `Hội đồng không tồn tại` | `defenseCommitteeId` sai |
+| `Hội đồng đã đóng` | Hội đồng đang `CLOSED` |
+| `Hội đồng chưa có chủ tịch` | Hội đồng chưa có thành viên `CHAIRMAN` |
+| `Đăng ký đề tài không tồn tại` | `topicRegistrationId` sai |
+| `Đăng ký đề tài chưa được duyệt` | Đăng ký chưa `APPROVED` |
+| `Nhóm này đã được phân công hội đồng` | Đăng ký đề tài đã được phân công trước đó |
+| `Hội đồng và đề tài không cùng kỳ đăng ký` | Lệch `registration_period_id` |
+| `Giảng viên hướng dẫn không được chấm đề tài mình hướng dẫn` | GVHD nằm trong hội đồng |
+| `Thời gian bảo vệ không được trước ngày bảo vệ của kỳ đăng ký` | `scheduledStart` sớm hơn `defense_date`, hoặc `end` không sau `start` |
+| `Phòng đã có lịch bảo vệ vào thời điểm này` | Trùng phòng + trùng giờ |
+| `Trạng thái phân công không hợp lệ` | Cập nhật lịch khi phân công không còn `ASSIGNED` |
+
+
 
 ---
 
@@ -1553,6 +1650,7 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 | Bài nộp | `/api/submissions` | ADMIN / LECTURER / STUDENT |
 | Góp ý bài nộp | `/api/submissions/feedbacks` | LECTURER |
 | Hội đồng bảo vệ | `/api/defense-committees` | ADMIN / LECTURER |
+| Phân công hội đồng chấm | `/api/committee-topic-assignments` | ADMIN |
 
 ---
 
