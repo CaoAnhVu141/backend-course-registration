@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import modules.committee_topic_assignments.dto.CommitteeTopicAssignmentResponse;
 import modules.committee_topic_assignments.dto.CreateCommitteeTopicAssignmentRequest;
+import modules.committee_topic_assignments.dto.UpdateDefenseScheduleRequest;
 import modules.committee_topic_assignments.enums.EnumCommitteeTopicAssignmentSuccess;
 import modules.committee_topic_assignments.service.CommitteeTopicAssignmentService;
 import modules.defense_committees.dto.CommitteeMemberResponse;
@@ -22,18 +23,31 @@ import modules.defense_committees.dto.CommitteeMemberResponse;
 @RequiredArgsConstructor
 public class CommitteeTopicAssignmentController {
 
-    private final CommitteeTopicAssignmentService committeeTopicAssignmentService;
+        private final CommitteeTopicAssignmentService committeeTopicAssignmentService;
 
-    @PreAuthorize(HAS_ROLE_ADMIN)
-    @PostMapping
-    public ResponseEntity<ApiResponse<CommitteeTopicAssignmentResponse>> createCommitteeTopiccAssignmentController(
-            @Valid @RequestBody CreateCommitteeTopicAssignmentRequest request,
-            Authentication authentication) {
-        CommitteeTopicAssignmentResponse response = committeeTopicAssignmentService
-                .createCommitteeTopicAssignmentService(request, authentication.getName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                ApiResponse.success(HttpStatus.CREATED.value(),
-                        EnumCommitteeTopicAssignmentSuccess.CREATED.getMessage(),
-                        response));
-    }
+        @PreAuthorize(HAS_ROLE_ADMIN)
+        @PostMapping
+        public ResponseEntity<ApiResponse<CommitteeTopicAssignmentResponse>> createCommitteeTopiccAssignmentController(
+                        @Valid @RequestBody CreateCommitteeTopicAssignmentRequest request,
+                        Authentication authentication) {
+                CommitteeTopicAssignmentResponse response = committeeTopicAssignmentService
+                                .createCommitteeTopicAssignmentService(request, authentication.getName());
+                return ResponseEntity.status(HttpStatus.CREATED).body(
+                                ApiResponse.success(HttpStatus.CREATED.value(),
+                                                EnumCommitteeTopicAssignmentSuccess.CREATED.getMessage(),
+                                                response));
+        }
+
+        @PreAuthorize(HAS_ROLE_ADMIN)
+        @PutMapping("/{id}/schedule")
+        public ResponseEntity<ApiResponse<CommitteeTopicAssignmentResponse>> updateDefenseScheduleController(
+                        @PathVariable Long id, @Valid @RequestBody UpdateDefenseScheduleRequest request) {
+                CommitteeTopicAssignmentResponse response = committeeTopicAssignmentService
+                                .updateDefenseScheduleService(id, request);
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                HttpStatus.OK.value(),
+                                                EnumCommitteeTopicAssignmentSuccess.SCHEDULE_UPDATED.getMessage(),
+                                                response));
+        }
 }
