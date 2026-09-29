@@ -173,6 +173,77 @@ public class CommitteeTopicAssignmentService {
                 return committeeTopicAssignmentMapper.toResponse(committeeTopicAssignment);
         }
 
+        // huỷ phân công
+        @Transactional
+        public CommitteeTopicAssignmentResponse cancelCommitteeTopicAssignmentService(Long id) {
+                CommitteeTopicAssignment committeeTopicAssignment = findCommitteeTopicAssignmentById(id);
+                if (committeeTopicAssignment.getStatus() != CommitteeTopicAssignmentStatus.ASSIGNED) {
+                        throw new CommitteeTopicAssignmentException(
+                                        EnumCommitteeTopicAssignmentError.INVALID_ASSIGNMENT_STATUS);
+                }
+                committeeTopicAssignment.setStatus(CommitteeTopicAssignmentStatus.CANCELED);
+                return committeeTopicAssignmentMapper.toResponse(committeeTopicAssignment);
+        }
+
+        // lấy toàn bộ phân công
+        @Transactional(readOnly = true)
+        public List<CommitteeTopicAssignmentResponse> getAllCommitteeTopicAssignmentService() {
+                return committeeTopicAssignmentRepository.findAll().stream()
+                                .map(committeeTopicAssignmentMapper::toResponse).toList();
+        }
+
+        @Transactional(readOnly = true)
+        public CommitteeTopicAssignmentResponse getCommitteeTopicAssignmentByIdService(Long id) {
+                return committeeTopicAssignmentMapper.toResponse(findCommitteeTopicAssignmentById(id));
+        }
+
+        // danh sách đề tại mà hội đồng chấm
+        @Transactional(readOnly = true)
+        public List<CommitteeTopicAssignmentResponse> getAllByDefenseCommitteeService(Long defenseCommitteeId) {
+                findDefenseCommitteeById(defenseCommitteeId);
+                return committeeTopicAssignmentRepository.findAllByDefenseCommitteeId(defenseCommitteeId).stream()
+                                .map(committeeTopicAssignmentMapper::toResponse).toList();
+        }
+
+        // giảng viên xem hội đồng mà mình được tham gia
+        @Transactional(readOnly = true)
+        public List<CommitteeTopicAssignmentResponse> getMyAssignmentsAsLecturerService(String username) {
+                Lecturer lecturer = lecturerRepository.findByUserUsername(username)
+                                .orElseThrow(() -> new CommitteeTopicAssignmentException(
+                                                EnumCommitteeTopicAssignmentError.LECTURER_NOT_FOUND));
+                List<Long> defenseCommitteeIds = committeeMemberRepository.findAllByLecturerUserId(
+                                lecturer.getUserId()).stream().map(
+                                                committeeMember -> committeeMember.getDefenseCommittee().getId())
+                                .distinct().toList();
+                if (defenseCommitteeIds.isEmpty()) {
+                        return List.of();
+                }
+
+                // lấy tất cả phân công của các hội đồng mà giảng viên này tham gia
+                return committeeTopicAssignmentRepository.findAllByDefenseCommitteeIdIn(defenseCommitteeIds).stream()
+                                .map(committeeTopicAssignmentMapper::toResponse).toList();
+        }
+
+        // sinh vien xem lịch của nhóm mình
+        @Transactional(readOnly = true)
+        public List<CommitteeTopicAssignmentResponse> getMyGroupAssignmentsAsStudentService(String username) {
+                Student student = studentRepository.findByUserUsername(username)
+                                .orElseThrow(() -> new CommitteeTopicAssignmentException(
+                                                EnumCommitteeTopicAssignmentError.STUDENT_NOT_FOUND));
+                List<Long> studentGroupIds = groupMemberRepository.findAllByStudentUserId(student.getUserId())
+                                .stream().map(
+                                                groupMember -> groupMember.getStudentGroup().getId())
+                                .distinct().toList();
+
+                if (studentGroupIds.isEmpty()) {
+                        return List.of();
+                }
+
+                return committeeTopicAssignmentRepository.findAllByTopicRegistrationStudentGroupIdIn(studentGroupIds)
+                                .stream()
+                                .map(committeeTopicAssignmentMapper::toResponse).toList();
+        }
+
         // function helper
         private DefenseCommittee findDefenseCommitteeById(Long id) {
                 return defenseCommitteeRepository.findById(id).orElseThrow(() -> new CommitteeTopicAssignmentException(
