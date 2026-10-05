@@ -15,7 +15,9 @@ public enum EnumTopicError {
     ONLY_PENDING_TOPIC_CAN_BE_REJECTED("Chỉ đề tài đang chờ duyệt mới được từ chối"),
     ONLY_PENDING_TOPIC_CAN_BE_APPROVED("Chỉ đề tài đang chờ duyệt mới được chấp nhận"),
     LECTURER_REGISTRATION_NOT_OPEN("Chưa đến thời gian hoặc đã hết hạn giảng viên đăng ký đề tài"),
-    REGISTRATION_PERIOD_INACTIVE("Kỳ đăng ký không hoạt động");
+    REGISTRATION_PERIOD_INACTIVE("Kỳ đăng ký không hoạt động"),
+    CO_SUPERVISOR_NOT_FOUND("Giảng viên hướng dẫn thứ hai không tồn tại"),
+    DUPLICATE_SUPERVISOR("Giảng viên hướng dẫn thứ hai phải khác người tạo đề tài");
 
     private final String message;
 

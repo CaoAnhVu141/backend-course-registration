@@ -46,7 +46,7 @@ public class TopicService {
                 .orElseThrow(() -> new TopicException(EnumTopicError.REGISTRATION_PERIOD_NOT_FOUND));
         if (!registrationPeriod.isStatus()) {
             throw new TopicException(EnumTopicError.REGISTRATION_PERIOD_INACTIVE);
-        }        
+        }
         validateLecturerRegistrationTime(registrationPeriod);
 
         Lecturer lecturer = lecturerRepository.findByUserUsername(username)
@@ -61,8 +61,16 @@ public class TopicService {
                         .proposedBy(lecturer.getUser().getEmail())
                         .status(TopicStatus.PENDING)
                         .build());
-        saveTopicSupervisor(topic, lecturer);
-        return topicMapper.toResponse(topic, Set.of(lecturer.getUserId()));
+        Long coSupervisorId = request.getCoSupervisorId();
+        if (coSupervisorId != null) {
+            if (coSupervisorId.equals(lecturer.getUserId())) {
+                throw new TopicException(EnumTopicError.DUPLICATE_SUPERVISOR);
+            }
+            Lecturer coSupervisor = lecturerRepository.findById(coSupervisorId)
+                    .orElseThrow(() -> new TopicException(EnumTopicError.CO_SUPERVISOR_NOT_FOUND));
+            saveTopicSupervisor(topic, coSupervisor);
+        }
+        return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
     }
 
     @Transactional(readOnly = true)

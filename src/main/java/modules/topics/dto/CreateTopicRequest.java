@@ -24,4 +24,9 @@ public class CreateTopicRequest {
     @NotNull(message = "Kỳ đăng ký không được để trống")
     @Positive(message = "Kỳ đăng ký không hợp lệ")
     private Long registrationPeriodId;
+
+    // GVHD thứ 2, khác người tạo đề tài
+    @Positive(message = "Giảng viên hướng dẫn thứ hai không hợp lệ")
+    private Long coSupervisorId;
+
 }
