@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import modules.registration_period.enums.RegistrationPeriodType;
 
 @Getter
 @Setter
@@ -15,9 +16,8 @@ public class CreateRegistrationPeriodRequest {
     @Size(max = 255, message = "Tên kỳ đăng ký không được vượt quá 255 ký tự")
     private String name;
 
-    @NotBlank(message = "Loại kỳ đăng ký không được để trống")
-    @Size(max = 100, message = "Loại kỳ đăng ký không được vượt quá 100 ký tự")
-    private String type;
+    @NotNull(message = "Loại kỳ đăng ký không được để trống")
+    private RegistrationPeriodType type;
 
     @NotNull(message = "Thời gian bắt đầu giảng viên đăng ký không được để trống")
     private LocalDateTime lecturerRegistrationStart;
@@ -31,9 +31,10 @@ public class CreateRegistrationPeriodRequest {
     @NotNull(message = "Thời gian kết thúc sinh viên đăng ký không được để trống")
     private LocalDateTime studentRegistrationEnd;
 
-    @NotNull(message = "Deadline chấm phản biện không được để trống")
+    // Deadline chấm phản biện
     private LocalDateTime reviewerScoreDeadline;
 
-    @NotNull(message = "Ngày bảo vệ không được để trống")
+    // Ngày bảo vệ
     private LocalDateTime defenseDate;
+
 }

@@ -3,6 +3,9 @@ package modules.registration_period.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import modules.registration_period.enums.RegistrationPeriodType;
 
 @Entity
 @Table(name = "registration_periods")
@@ -21,8 +24,9 @@ public class RegistrationPeriod {
     @Column(name = "name", nullable = false, length = 255)
     private String name;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 100)
-    private String type;
+    private RegistrationPeriodType type;
 
     @Column(name = "lecturer_registration_start")
     private LocalDateTime lecturerRegistrationStart;
