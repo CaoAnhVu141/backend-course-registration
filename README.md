@@ -214,6 +214,22 @@ submissions/
 ```
 > ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ: tạo bài nộp (STUDENT), danh sách bài nộp (ADMIN, LECTURER), chi tiết bài nộp, bài nộp theo đăng ký đề tài, và **góp ý bài nộp** (LECTURER tạo góp ý, xem góp ý theo phiên bản / theo giảng viên). Một đăng ký đề tài đã được duyệt (`APPROVED`) chỉ có **một** bài nộp duy nhất. Mỗi bài nộp có thể có nhiều phiên bản (`SubmissionVersion`) lưu file báo cáo, và mỗi phiên bản có thể nhận nhiều góp ý (`SubmissionFeedback`) từ giảng viên.
 
+#### `modules/committee_topic_assignments` — Phân công hội đồng chấm đề tài 🚧 (đang làm)
+```
+committee_topic_assignments/
+├── controller/CommitteeTopicAssignmentController.java
+├── dto/CreateCommitteeTopicAssignmentRequest.java, UpdateDefenseScheduleRequest.java, CommitteeTopicAssignmentResponse.java
+├── entity/CommitteeTopicAssignment.java
+├── enums/CommitteeTopicAssignmentStatus.java, EnumCommitteeTopicAssignmentError.java, EnumCommitteeTopicAssignmentSuccess.java
+├── exception/CommitteeTopicAssignmentException.java
+├── mapper/CommitteeTopicAssignmentMapper.java
+├── repository/CommitteeTopicAssignmentRepository.java
+└── service/CommitteeTopicAssignmentService.java
+```
+> 🚧 **Trạng thái**: Gán một đăng ký đề tài (đã `APPROVED`) cho một hội đồng, kèm lịch + phòng bảo vệ. Mỗi đăng ký đề tài chỉ được phân công cho **đúng một** hội đồng. Ràng buộc khi phân công: hội đồng chưa `CLOSED` và **đã có chủ tịch**; hội đồng và đề tài cùng kỳ đăng ký; **GVHD không được chấm đề tài mình hướng dẫn**; thời gian bảo vệ không sớm hơn `defense_date` của kỳ; phòng không trùng giờ. Trạng thái phân công: `ASSIGNED`, `COMPLETED`, `CANCELED`. **Đã làm**: tạo phân công (POST), cập nhật lịch (PUT /schedule). **Chưa làm**: complete/cancel và các API GET.
+
+
+
 ## 🛠️ Cách chạy dự án
 
 ### Yêu cầu
@@ -531,6 +547,31 @@ POST /api/defense-committees/1/members
 
 > **Lưu ý**: Hội đồng ở trạng thái `CLOSED` không thể thêm thành viên. Một giảng viên không thể được thêm vào cùng một hội đồng hai lần. Trạng thái hội đồng: `ACTIVE` (đang hoạt động), `INACTIVE` (ngừng hoạt động), `CLOSED` (đã đóng). Vai trò thành viên: `MEMBER`, `REVIEWER`, `CHAIRMAN`, `SECRETARY`.
 
+### Phân công hội đồng chấm đề tài (Committee Topic Assignments) 🚧
+
+| Method | Endpoint | Mô tả | Quyền | Trạng thái |
+|--------|----------|-------|-------|:---------:|
+| POST | `/api/committee-topic-assignments` | Phân công đề tài cho hội đồng | ADMIN | ✅ |
+| PUT | `/api/committee-topic-assignments/{id}/schedule` | Cập nhật lịch + phòng bảo vệ | ADMIN | ✅ |
+| PATCH | `/api/committee-topic-assignments/{id}/complete` | Xác nhận đã bảo vệ xong | ADMIN | 🚧 |
+| PATCH | `/api/committee-topic-assignments/{id}/cancel` | Huỷ phân công | ADMIN | 🚧 |
+| GET | `/api/committee-topic-assignments` | Danh sách tất cả phân công | ADMIN, LECTURER | 🚧 |
+| GET | `/api/committee-topic-assignments/{id}` | Chi tiết phân công | ADMIN, LECTURER | 🚧 |
+| GET | `/api/committee-topic-assignments/defense-committee/{id}` | Đề tài một hội đồng chấm | ADMIN, LECTURER | 🚧 |
+| GET | `/api/committee-topic-assignments/me` | Lịch chấm của GV | LECTURER | 🚧 |
+| GET | `/api/committee-topic-assignments/my-group` | Lịch bảo vệ của nhóm SV | STUDENT | 🚧 |
+
+```json
+POST /api/committee-topic-assignments
+{
+  "defenseCommitteeId": 1,
+  "topicRegistrationId": 1,
+  "scheduledStart": "2026-12-20T08:00:00",
+  "scheduledEnd": "2026-12-20T09:00:00",
+  "room": "A5-101"
+}
+```
+
 ## 📦 Format Response
 
 Các module dùng `ApiResponse` (students, lecturers, expertisetags, registration_period, topics) trả về format chuẩn:
@@ -570,3 +611,10 @@ Các module dùng `ApiResponse` (students, lecturers, expertisetags, registratio
 > 📌 **Tính năng đang chờ phát triển / chưa hoàn thiện:**
 > - **Phân công giảng viên hướng dẫn** (`supervisorIds` hiện chưa có endpoint để gán) — chưa làm
 > - **Chấm điểm phản biện** (reviewer score) — chưa làm
+### 🆕 Cập nhật nghiệp vụ gần đây
+
+- **Kỳ đăng ký — `type` là enum 4 giá trị**: `SUBJECT` (môn học), `NCKH`, `TLCN`, `KLTN`. `reviewerScoreDeadline` chỉ thiết lập khi `TLCN`/`KLTN`; `defenseDate` chỉ khi `KLTN`. Gửi sai loại (vd `SUBJECT` kèm `defenseDate`) → báo lỗi.
+- **Đề tài — 1 đến 2 GVHD**: người tạo là GVHD chính; truyền thêm `coSupervisorId` (tùy chọn, phải khác người tạo) để có GVHD thứ 2.
+- **Bài nộp — chỉ nhóm trưởng (LEADER)** mới được nộp báo cáo.
+- **Hội đồng bảo vệ — 3 đến 5 GV**, phải có **đúng 1 CHAIRMAN và 1 SECRETARY**. Ràng buộc số lượng/vai trò được kiểm tra khi thêm thành viên và khi đóng hội đồng.
+

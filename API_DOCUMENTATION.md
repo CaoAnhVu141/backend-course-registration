@@ -1669,6 +1669,65 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 
 ---
 
+---
+
+# 🏛️ Phân công hội đồng chấm đề tài — `/api/committee-topic-assignments`
+
+> Gán một **đăng ký đề tài đã duyệt** cho một **hội đồng bảo vệ**, kèm lịch + phòng. Mỗi đăng ký đề tài chỉ được phân công cho **đúng một** hội đồng.
+
+## Tạo phân công
+- **`POST /api/committee-topic-assignments`** — Role: `ADMIN`
+```json
+{
+  "defenseCommitteeId": 1,
+  "topicRegistrationId": 1,
+  "scheduledStart": "2026-12-20T08:00:00",
+  "scheduledEnd": "2026-12-20T09:00:00",
+  "room": "A5-101"
+}
+```
+| Field | Bắt buộc | Mô tả |
+|-------|:--------:|-------|
+| `defenseCommitteeId` | ✅ | ID hội đồng (phải chưa `CLOSED`, đã có `CHAIRMAN`) |
+| `topicRegistrationId` | ✅ | ID đăng ký đề tài (phải `APPROVED`, cùng kỳ với hội đồng) |
+| `scheduledStart` / `scheduledEnd` | ❌ | Lịch bảo vệ (bỏ trống nếu xếp sau). `end` > `start`, `start` ≥ `defense_date` của kỳ |
+| `room` | ❌ | Phòng (≤100 ký tự), không trùng giờ với lịch khác |
+
+- **Response (201):** `CommitteeTopicAssignmentResponse`
+
+## Cập nhật lịch bảo vệ
+- **`PUT /api/committee-topic-assignments/{id}/schedule`** — Role: `ADMIN` (cả 3 field bắt buộc; phân công phải đang `ASSIGNED`)
+```json
+{ "scheduledStart": "2026-12-20T08:00:00", "scheduledEnd": "2026-12-20T09:00:00", "room": "A5-101" }
+```
+
+## `CommitteeTopicAssignmentResponse`
+| Field | Mô tả |
+|-------|-------|
+| `id` | ID phân công |
+| `defenseCommitteeId` / `defenseCommitteeCode` / `defenseCommitteeName` | Hội đồng |
+| `registrationPeriodId` | Kỳ đăng ký |
+| `topicRegistrationId` / `topicId` / `topicTitle` | Đề tài |
+| `studentGroupId` / `studentGroupName` | Nhóm SV |
+| `scheduledStart` / `scheduledEnd` / `room` | Lịch + phòng bảo vệ |
+| `status` | `ASSIGNED` / `COMPLETED` / `CANCELED` |
+| `assignedBy` / `assignedAt` | Người & thời điểm phân công |
+
+## Lỗi thường gặp (409)
+| Message | Nguyên nhân |
+|---------|-------------|
+| `Hội đồng chưa có chủ tịch` | Hội đồng chưa có thành viên `CHAIRMAN` |
+| `Nhóm này đã được phân công hội đồng` | Đăng ký đề tài đã được phân công |
+| `Đăng ký đề tài chưa được duyệt` | Đăng ký chưa `APPROVED` |
+| `Hội đồng và đề tài không cùng kỳ đăng ký` | Lệch kỳ đăng ký |
+| `Giảng viên hướng dẫn không được chấm đề tài mình hướng dẫn` | GVHD nằm trong hội đồng |
+| `Thời gian bảo vệ không được trước ngày bảo vệ của kỳ đăng ký` | `scheduledStart` sớm hơn `defense_date` hoặc `end` ≤ `start` |
+| `Phòng đã có lịch bảo vệ vào thời điểm này` | Trùng phòng + trùng giờ |
+
+> 🚧 Các API `complete`, `cancel`, và các `GET` đã có ở tầng service, chưa expose controller.
+
+
+
 # 🚀 Hướng dẫn nhanh cho FE khi gọi API
 
 1. **Đăng nhập** → `POST /api/auth/login` → lưu `accessToken` + `refreshToken` (localStorage/sessionStorage).
@@ -1698,3 +1757,12 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
    - **Admin/Lecturer/Student** xem chi tiết bài nộp → `GET /api/submissions/{id}`, xem theo đăng ký đề tài → `GET /api/submissions/topic-registration/{topicRegistrationId}`.
    - **Giảng viên** góp ý cho phiên bản bài nộp → `POST /api/submissions/feedbacks`, xem góp ý của mình → `GET /api/submissions/feedbacks/me`.
    - **Admin/Lecturer/Student** xem góp ý theo phiên bản bài nộp → `GET /api/submissions/versions/{submissionVersionId}/feedbacks`.
+
+   > 🆕 **Kỳ đăng ký**: `type` giờ là enum `SUBJECT` | `NCKH` | `TLCN` | `KLTN`. `reviewerScoreDeadline` chỉ gửi khi `TLCN`/`KLTN`, `defenseDate` chỉ gửi khi `KLTN` — gửi thừa cho loại khác sẽ bị từ chối.
+
+> 🆕 **Đề tài**: thêm field tùy chọn `coSupervisorId` khi tạo (`POST /api/topics`) để có GVHD thứ 2 (phải khác người tạo). Đề tài có 1–2 GVHD.
+
+> 🆕 **Bài nộp**: `POST /api/submissions` chỉ cho **nhóm trưởng** nộp; SV khác → 409 "Chỉ nhóm trưởng mới được nộp báo cáo".
+
+> 🆕 **Hội đồng bảo vệ**: thêm thành viên bị chặn nếu đủ 5 GV hoặc đã có chủ tịch/thư ký. Đóng hội đồng yêu cầu 3–5 GV, đúng 1 chủ tịch + 1 thư ký.
+
