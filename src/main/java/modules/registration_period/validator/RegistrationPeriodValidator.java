@@ -5,6 +5,7 @@ import modules.registration_period.dto.UpdateRegistrationPeriodRequest;
 import modules.registration_period.enums.EnumRegistrationPeriodError;
 import modules.registration_period.exception.RegistrationPeriodException;
 import org.springframework.stereotype.Component;
+import modules.registration_period.enums.RegistrationPeriodType;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +14,7 @@ public class RegistrationPeriodValidator {
 
     public void validateForCreate(CreateRegistrationPeriodRequest createRegistrationPeriodRequest) {
         validateTimeRange(
+                createRegistrationPeriodRequest.getType(),
                 createRegistrationPeriodRequest.getLecturerRegistrationStart(),
                 createRegistrationPeriodRequest.getLecturerRegistrationEnd(),
                 createRegistrationPeriodRequest.getStudentRegistrationStart(),
@@ -23,6 +25,7 @@ public class RegistrationPeriodValidator {
 
     public void validateForUpdate(UpdateRegistrationPeriodRequest updateRegistrationPeriodRequest) {
         validateTimeRange(
+                updateRegistrationPeriodRequest.getType(),
                 updateRegistrationPeriodRequest.getLecturerRegistrationStart(),
                 updateRegistrationPeriodRequest.getLecturerRegistrationEnd(),
                 updateRegistrationPeriodRequest.getStudentRegistrationStart(),
@@ -32,6 +35,7 @@ public class RegistrationPeriodValidator {
     }
 
     private void validateTimeRange(
+            RegistrationPeriodType type,
             LocalDateTime lecturerStart,
             LocalDateTime lecturerEnd,
             LocalDateTime studentStart,
@@ -54,8 +58,29 @@ public class RegistrationPeriodValidator {
             throw new RegistrationPeriodException(EnumRegistrationPeriodError.INVALID_REVIEWER_SCORE_DEADLINE);
         }
 
-        if (defenseDate.isBefore(reviewerScoreDeadline)) {
-            throw new RegistrationPeriodException(EnumRegistrationPeriodError.INVALID_DEFENSE_DATE);
+        // deadline chấm phản biện TLCN/KLTN mới có
+        boolean needReviewerDeadline = type == RegistrationPeriodType.TLCN || type == RegistrationPeriodType.KLTN;
+        if (needReviewerDeadline) {
+            if (reviewerScoreDeadline == null) {
+                throw new RegistrationPeriodException(EnumRegistrationPeriodError.REVIEWER_SCORE_DEADLINE_REQUIRED);
+            }
+            if (reviewerScoreDeadline.isBefore(studentEnd)) {
+                throw new RegistrationPeriodException(EnumRegistrationPeriodError.INVALID_REVIEWER_SCORE_DEADLINE);
+            }
+        } else if (reviewerScoreDeadline != null) {
+            throw new RegistrationPeriodException(EnumRegistrationPeriodError.REVIEWER_SCORE_DEADLINE_NOT_ALLOWED);
+        }
+
+        // ngày báo cáo hội đồng: chỉ KLTN mới có
+        if (type == RegistrationPeriodType.KLTN) {
+            if (defenseDate == null) {
+                throw new RegistrationPeriodException(EnumRegistrationPeriodError.DEFENSE_DATE_REQUIRED);
+            }
+            if (defenseDate.isBefore(reviewerScoreDeadline)) {
+                throw new RegistrationPeriodException(EnumRegistrationPeriodError.INVALID_DEFENSE_DATE);
+            }
+        } else if (defenseDate != null) {
+            throw new RegistrationPeriodException(EnumRegistrationPeriodError.DEFENSE_DATE_NOT_ALLOWED);
         }
     }
 }
