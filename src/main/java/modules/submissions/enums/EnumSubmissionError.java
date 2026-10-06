@@ -10,7 +10,8 @@ public enum EnumSubmissionError {
     TOPIC_REGISTRATION_NOT_APPROVED("Đăng ký đề tài chưa được duyệt"),
     USER_NOT_FOUND("Người dùng không tồn tại"),
     SUBMISSION_VERSION_NOT_FOUND("Phiên bản bài nộp không tồn tại"),
-    LECTURER_NOT_FOUND("Giảng viên không tồn tại");
+    LECTURER_NOT_FOUND("Giảng viên không tồn tại"),
+    NOT_GROUP_LEADER("Chỉ nhóm trưởng mới được nộp báo cáo");
 
     private final String message;
 

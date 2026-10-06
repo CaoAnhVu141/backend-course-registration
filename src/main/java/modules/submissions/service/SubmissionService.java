@@ -24,6 +24,8 @@ import modules.submissions.entity.SubmissionFeedback;
 import modules.submissions.repository.SubmissionFeedbackRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import modules.student_group.enums.GroupMemberRole;
+import modules.student_group.repository.GroupMemberRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -41,16 +43,26 @@ public class SubmissionService {
         private final SubmissionMapper submissionMapper;
         private final SubmissionFeedbackRepository submissionFeedbackRepository;
         private final LecturerRepository lecturerRepository;
+        private final GroupMemberRepository groupMemberRepository;
 
         @Transactional
-        public SubmissionResponse createSubmissionService(CreateSubmissionRequest createSubmissionRequest) {
+        public SubmissionResponse createSubmissionService(CreateSubmissionRequest createSubmissionRequest,
+                        String username) {
                 TopicRegistration topicRegistration = topicRegistrationRepository
                                 .findById(createSubmissionRequest.getTopicRegistrationId())
                                 .orElseThrow(() -> new SubmissionException(
                                                 EnumSubmissionError.TOPIC_REGISTRATION_NOT_FOUND));
+                User user = userRepository.findByUsername(username).orElseThrow(
+                                () -> new SubmissionException(EnumSubmissionError.USER_NOT_FOUND));
 
                 if (topicRegistration.getStatus() != TopicRegistrationStatus.APPROVED) {
                         throw new SubmissionException(EnumSubmissionError.TOPIC_REGISTRATION_NOT_APPROVED);
+                }
+
+                // chỉ nhóm trưởng mới thực hiện nộp được báo cáo
+                if (!groupMemberRepository.existsByStudentGroupIdAndStudentUserIdAndRole(
+                                topicRegistration.getStudentGroup().getId(), user.getId(), GroupMemberRole.LEADER)) {
+                        throw new SubmissionException(EnumSubmissionError.NOT_GROUP_LEADER);
                 }
 
                 if (submissionRepository.existsByTopicRegistrationId(topicRegistration.getId())) {

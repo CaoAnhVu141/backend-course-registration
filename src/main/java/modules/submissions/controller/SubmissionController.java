@@ -41,8 +41,9 @@ public class SubmissionController {
         @PreAuthorize(HAS_ROLE_STUDENT)
         @PostMapping
         public ResponseEntity<ApiResponse<SubmissionResponse>> createSubmissionController(
-                        @Valid @RequestBody CreateSubmissionRequest request) {
-                SubmissionResponse response = submissionService.createSubmissionService(request);
+                        @Valid @RequestBody CreateSubmissionRequest request, Authentication authentication) {
+                SubmissionResponse response = submissionService.createSubmissionService(request,
+                                authentication.getName());
                 return ResponseEntity.status(HttpStatus.CREATED).body(
                                 ApiResponse.success(HttpStatus.CREATED.value(),
                                                 EnumSubmissionSuccess.CREATED.getMessage(), response));

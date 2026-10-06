@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import modules.student_group.entity.GroupMember;
+import modules.student_group.enums.GroupMemberRole;
 
 public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
 
@@ -16,4 +17,7 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     List<GroupMember> findAllByStudentUserId(Long studentUserId);
 
     void deleteAllByStudentGroupId(Long studentGroupId);
+
+    // kiểm tra người gửi báo cáo có phải là nhóm trưởng hay không
+    boolean existsByStudentGroupIdAndStudentUserIdAndRole(Long studentGroup, Long studentUserId, GroupMemberRole role);
 }
