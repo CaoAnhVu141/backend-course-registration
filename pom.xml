@@ -92,6 +92,13 @@
             <artifactId>junit-platform-launcher</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Runtime code -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+            <scope>runtime</scope>
+    </dependency>
     </dependencies>
 
     <build>
@@ -108,16 +115,6 @@
                         </exclude>
                     </excludes>
                 </configuration>
-                <executions>
-                    <!-- Tự động clean trước khi chạy để tránh lỗi NoClassDefFoundError do build cũ -->
-                    <execution>
-                        <id>clean-before-run</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>clean</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
                 <!-- maven-compiler-plugin với Lombok annotation processor -->
             <plugin>
