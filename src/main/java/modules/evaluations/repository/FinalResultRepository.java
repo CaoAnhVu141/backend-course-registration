@@ -1,6 +1,11 @@
 package modules.evaluations.repository;
 
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
 import modules.evaluations.entity.Evaluation;
+import modules.evaluations.entity.FinalResult;
 
 public interface FinalResultRepository extends JpaRepository<Evaluation, Long> {
 
