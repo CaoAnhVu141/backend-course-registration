@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 public class UpdateDepartmentRequest {
 
+    // phòng ban không được để trống
     @NotBlank(message = "Tên phòng ban không được để trống")
     private String name;
 }

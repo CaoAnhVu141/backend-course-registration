@@ -34,6 +34,7 @@ public class RegistrationPeriodValidator {
                 updateRegistrationPeriodRequest.getDefenseDate());
     }
 
+    // check thời gian đăng kí
     private void validateTimeRange(
             RegistrationPeriodType type,
             LocalDateTime lecturerStart,
@@ -42,20 +43,18 @@ public class RegistrationPeriodValidator {
             LocalDateTime studentEnd,
             LocalDateTime reviewerScoreDeadline,
             LocalDateTime defenseDate) {
+
+        // giảng viên đăng kí
         if (!lecturerEnd.isAfter(lecturerStart)) {
             throw new RegistrationPeriodException(EnumRegistrationPeriodError.INVALID_LECTURER_REGISTRATION_TIME);
         }
-
+        // sinh viên đăng kí
         if (!studentEnd.isAfter(studentStart)) {
             throw new RegistrationPeriodException(EnumRegistrationPeriodError.INVALID_STUDENT_REGISTRATION_TIME);
         }
 
         if (studentStart.isBefore(lecturerStart)) {
             throw new RegistrationPeriodException(EnumRegistrationPeriodError.INVALID_STUDENT_REGISTRATION_TIME);
-        }
-
-        if (reviewerScoreDeadline.isBefore(studentEnd)) {
-            throw new RegistrationPeriodException(EnumRegistrationPeriodError.INVALID_REVIEWER_SCORE_DEADLINE);
         }
 
         // deadline chấm phản biện TLCN/KLTN mới có
@@ -71,12 +70,12 @@ public class RegistrationPeriodValidator {
             throw new RegistrationPeriodException(EnumRegistrationPeriodError.REVIEWER_SCORE_DEADLINE_NOT_ALLOWED);
         }
 
-        // ngày báo cáo hội đồng: chỉ KLTN mới có
+        // ngày báo cáo hội đồng chỉ KLTN mới có
         if (type == RegistrationPeriodType.KLTN) {
             if (defenseDate == null) {
                 throw new RegistrationPeriodException(EnumRegistrationPeriodError.DEFENSE_DATE_REQUIRED);
             }
-            if (defenseDate.isBefore(reviewerScoreDeadline)) {
+            if (defenseDate.isBefore((reviewerScoreDeadline))) {
                 throw new RegistrationPeriodException(EnumRegistrationPeriodError.INVALID_DEFENSE_DATE);
             }
         } else if (defenseDate != null) {

@@ -28,9 +28,12 @@ public class RegistrationPeriodService {
     public RegistrationPeriodResponse createRegistrationPeriodService(
             CreateRegistrationPeriodRequest registrationPeriodRequest) {
         registrationPeriodValidator.validateForCreate(registrationPeriodRequest);
+        // check điều kiện nếu type đã tồn tại
         if (registrationPeriodRepository.existsByType(registrationPeriodRequest.getType())) {
             throw new RegistrationPeriodException(EnumRegistrationPeriodError.REGISTRATION_PERIOD_TYPE_EXISTS);
         }
+
+        // check điều kiện name đã tồn tại
         if (registrationPeriodRepository.existsByName(registrationPeriodRequest.getName())) {
             throw new RegistrationPeriodException(EnumRegistrationPeriodError.REGISTRATION_PERIOD_NAME_EXISTS);
         }
