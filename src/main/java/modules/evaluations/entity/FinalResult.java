@@ -29,14 +29,14 @@ public class FinalResult {
     private CommitteeTopicAssignment committeeTopicAssignment;
 
     // điểm
-    @Column(name = "final_score")
-    private Double finaleScore;
+    @Column(name = "final_score", nullable = false)
+    private Double finalScore;
 
     @Column(name = "published", nullable = false)
     private boolean published;
 
     @Column(name = "published_by", length = 255)
-    private String pulishedBy;
+    private String publishedBy;
 
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
