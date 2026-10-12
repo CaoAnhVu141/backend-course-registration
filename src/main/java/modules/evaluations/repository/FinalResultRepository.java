@@ -15,6 +15,6 @@ public interface FinalResultRepository extends JpaRepository<FinalResult, Long> 
     List<FinalResult> findByCommitteeTopicAssignmentId(Long assignmentId);
 
     // sinh viên xem kết quả của nhóm mình
-    List<FinalResult> findAllByCommitteeTopicAssignmentIdInAndPublishedTrue(Long assignmentIds);
+    List<FinalResult> findAllByCommitteeTopicAssignmentIdInAndPublishedTrue(List<Long> assignmentIds);
 
 }
