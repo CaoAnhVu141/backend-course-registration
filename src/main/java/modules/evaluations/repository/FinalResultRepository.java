@@ -4,10 +4,9 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import modules.evaluations.entity.Evaluation;
 import modules.evaluations.entity.FinalResult;
 
-public interface FinalResultRepository extends JpaRepository<Evaluation, Long> {
+public interface FinalResultRepository extends JpaRepository<FinalResult, Long> {
 
     // check có kết quả cuối cùng bài làm
     boolean existsByCommitteeTopicAssignmentId(Long assignmentId);
