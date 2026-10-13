@@ -1,6 +1,7 @@
 package modules.evaluations.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.hibernate.tool.schema.spi.CommandAcceptanceException;
 import org.springframework.stereotype.Service;
@@ -11,10 +12,14 @@ import modules.auth.repository.UserRepository;
 import modules.committee_topic_assignments.entity.CommitteeTopicAssignment;
 import modules.committee_topic_assignments.enums.CommitteeTopicAssignmentStatus;
 import modules.committee_topic_assignments.repository.CommitteeTopicAssignmentRepository;
+import modules.defense_committees.entity.CommitteeMember;
+import modules.defense_committees.enums.CommitteeRole;
 import modules.defense_committees.repository.CommitteeMemberRepository;
 import modules.evaluations.dto.CreateEvaluationRequest;
 import modules.evaluations.dto.EvaluationResponse;
+import modules.evaluations.dto.FinalResultResponse;
 import modules.evaluations.entity.Evaluation;
+import modules.evaluations.entity.FinalResult;
 import modules.evaluations.enums.EnumEvaluationError;
 import modules.evaluations.enums.EvaluationStatus;
 import modules.evaluations.exception.EvaluationException;
@@ -75,6 +80,58 @@ public class EvaluationService {
                         .submittedAt(LocalDateTime.now())
                         .build());
         return evaluationMapper.toEvaluationResponse(evaluation);
+    }
+
+    @Transactional
+    public FinalResultResponse publishFInalResultService(Long assignmentId, String username) {
+        Lecturer lecturer = lecturerRepository.findByUserUsername(username)
+                .orElseThrow(() -> new EvaluationException(EnumEvaluationError.LECTURER_NOT_FOUND));
+        CommitteeTopicAssignment committeeTopicAssignment = findCommitteeTopicAssignmentById(assignmentId);
+        if (committeeTopicAssignment.getStatus() != CommitteeTopicAssignmentStatus.ASSIGNED) {
+            throw new EvaluationException(EnumEvaluationError.INVALID_ASSIGNMENT_STATUS);
+        }
+
+        // mỗi phân công chỉ có 1 kết quả thôi
+        if (finalResultRepository.existsByCommitteeTopicAssignmentId(committeeTopicAssignment.getId())) {
+            throw new EvaluationException(EnumEvaluationError.RESULT_ALREADY_PUBLISHED);
+        }
+
+        List<CommitteeMember> committeeMembers = committeeMemberRepository
+                .findAllByDefenseCommitteeId(committeeTopicAssignment.getDefenseCommittee().getId());
+
+        // check
+        boolean isChairman = committeeMembers.stream()
+                .anyMatch(m -> m.getCommitteeRole() == CommitteeRole.CHAIRMAN
+                        && m.getLecturer().getUserId().equals(lecturer.getUserId()));
+        if (!isChairman) {
+            throw new EvaluationException(EnumEvaluationError.NOT_CHAIRMAN);
+        }
+
+        List<Evaluation> evaluations = evaluationRepository.findAllByCommitteeTopicAssignmentId(
+                committeeTopicAssignment.getId());
+        if (evaluations.isEmpty()) {
+            throw new EvaluationException(EnumEvaluationError.NO_EVALUATIONS_YET);
+        }
+
+        // phải chấm đầy đủ thành viên
+        if (evaluations.size() < committeeMembers.size()) {
+            throw new EvaluationException(EnumEvaluationError.NOT_ALL_MEMBERS_EVALUATED);
+        }
+
+        double avg = evaluations.stream().mapToDouble(Evaluation::getScore).average().orElse(0.0);
+        double finalScore = Math.round(avg * 100.0) / 100.0; // làm tròn số lẻ
+
+        FinalResult finalResult = finalResultRepository.save(
+                FinalResult.builder()
+                        .committeeTopicAssignment(committeeTopicAssignment)
+                        .finalScore(finalScore)
+                        .published(true)
+                        .publishedBy(lecturer.getUser().getEmail())
+                        .publishedAt(LocalDateTime.now())
+                        .build());
+        committeeTopicAssignment.setStatus(CommitteeTopicAssignmentStatus.COMPLETED);
+        return evaluationMapper.toFinalResultResponse(finalResult, evaluations);
+
     }
 
     // func helper
