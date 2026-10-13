@@ -18,7 +18,8 @@ public enum EnumEvaluationError {
     NO_EVALUATIONS_YET("Chưa có điểm thành phần nào để tổng hợp"),
     NOT_ALL_MEMBERS_EVALUATED("Chưa đủ tất cả thành viên hội đồng chấm điểm"),
     RESULT_ALREADY_PUBLISHED("Kết quả đã được công bố"),
-    RESULT_NOT_FOUND("Chưa có kết quả cho đề tài này");
+    RESULT_NOT_FOUND("Chưa có kết quả cho đề tài này"),
+    NOT_EVALUATION_OWNER("Chỉ được sửa điểm do chính mình chấm");
 
     private final String message;
 
