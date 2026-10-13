@@ -6,7 +6,7 @@ import java.util.List;
 import org.hibernate.tool.schema.spi.CommandAcceptanceException;
 import org.springframework.stereotype.Service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import modules.auth.repository.UserRepository;
 import modules.committee_topic_assignments.entity.CommitteeTopicAssignment;
@@ -132,6 +132,14 @@ public class EvaluationService {
         committeeTopicAssignment.setStatus(CommitteeTopicAssignmentStatus.COMPLETED);
         return evaluationMapper.toFinalResultResponse(finalResult, evaluations);
 
+    }
+
+    // xem theo của 1 sự phân công
+    @Transactional(readOnly = true)
+    public List<EvaluationResponse> getEvaluationsByAssignmentService(Long assignmentId) {
+        findCommitteeTopicAssignmentById(assignmentId);
+        return evaluationRepository.findAllByCommitteeTopicAssignmentId(assignmentId).stream()
+                .map(evaluationMapper::toEvaluationResponse).toList();
     }
 
     // func helper
