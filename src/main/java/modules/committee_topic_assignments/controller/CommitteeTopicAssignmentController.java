@@ -2,6 +2,8 @@ package modules.committee_topic_assignments.controller;
 
 import static global.security.PermissionConstants.HAS_ROLE_ADMIN;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,5 +51,16 @@ public class CommitteeTopicAssignmentController {
                                                 HttpStatus.OK.value(),
                                                 EnumCommitteeTopicAssignmentSuccess.SCHEDULE_UPDATED.getMessage(),
                                                 response));
+        }
+
+        // lấy toàn bộ phân công
+        @PreAuthorize(HAS_ROLE_ADMIN)
+        @GetMapping
+        public ResponseEntity<ApiResponse<List<CommitteeTopicAssignmentResponse>>> getAllCommitteeTopicAssignmentController() {
+                List<CommitteeTopicAssignmentResponse> response = committeeTopicAssignmentService
+                                .getAllCommitteeTopicAssignmentService();
+                return ResponseEntity.ok(
+                                ApiResponse.success(HttpStatus.OK.value(),
+                                                EnumCommitteeTopicAssignmentSuccess.GET_ALL.getMessage(), response));
         }
 }
