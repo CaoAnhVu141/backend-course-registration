@@ -1,9 +1,12 @@
 package modules.committee_topic_assignments.controller;
 
 import static global.security.PermissionConstants.HAS_ROLE_ADMIN;
-
+import static global.security.PermissionConstants.HAS_ROLE_LECTURER;
+import static global.security.PermissionConstants.HAS_ROLE_STUDENT;
+import static global.security.PermissionConstants.HAS_ANY_ROLE_ADMIN_LECTURER;
 import java.util.List;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +21,6 @@ import modules.committee_topic_assignments.dto.CreateCommitteeTopicAssignmentReq
 import modules.committee_topic_assignments.dto.UpdateDefenseScheduleRequest;
 import modules.committee_topic_assignments.enums.EnumCommitteeTopicAssignmentSuccess;
 import modules.committee_topic_assignments.service.CommitteeTopicAssignmentService;
-import modules.defense_committees.dto.CommitteeMemberResponse;
 
 @RestController
 @RequestMapping("/api/committee-topic-assignments")
@@ -59,6 +61,75 @@ public class CommitteeTopicAssignmentController {
         public ResponseEntity<ApiResponse<List<CommitteeTopicAssignmentResponse>>> getAllCommitteeTopicAssignmentController() {
                 List<CommitteeTopicAssignmentResponse> response = committeeTopicAssignmentService
                                 .getAllCommitteeTopicAssignmentService();
+                return ResponseEntity.ok(
+                                ApiResponse.success(HttpStatus.OK.value(),
+                                                EnumCommitteeTopicAssignmentSuccess.GET_ALL.getMessage(), response));
+        }
+
+        // xem chi tiết
+        @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
+        @GetMapping("/{id}")
+        public ResponseEntity<ApiResponse<CommitteeTopicAssignmentResponse>> getCommitteeTopicAssignmentByIdService(
+                        @PathVariable Long id) {
+                CommitteeTopicAssignmentResponse response = committeeTopicAssignmentService
+                                .getCommitteeTopicAssignmentByIdService(id);
+                return ResponseEntity.ok(
+                                ApiResponse.success(HttpStatus.OK.value(),
+                                                EnumCommitteeTopicAssignmentSuccess.GET_DETAIL.getMessage(), response));
+        }
+
+        // hoàn thành bảo vệ đồ án xong
+        @PreAuthorize(HAS_ROLE_ADMIN)
+        @GetMapping("/{id}/complete")
+        public ResponseEntity<ApiResponse<CommitteeTopicAssignmentResponse>> completeCommitteeTopicAssignmentController(
+                        @PathVariable Long id) {
+                CommitteeTopicAssignmentResponse response = committeeTopicAssignmentService
+                                .completeCommitteeTopicAssignmentService(id);
+                return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(),
+                                EnumCommitteeTopicAssignmentSuccess.COMPLETED.getMessage(), response));
+        }
+
+        @PreAuthorize(HAS_ROLE_ADMIN)
+        @GetMapping("/{id}/cancel")
+        public ResponseEntity<ApiResponse<CommitteeTopicAssignmentResponse>> cancelCommitteeTopicAssignmentController(
+                        @PathVariable Long id) {
+                CommitteeTopicAssignmentResponse response = committeeTopicAssignmentService
+                                .cancelCommitteeTopicAssignmentService(id);
+                return ResponseEntity.ok(
+                                ApiResponse.success(HttpStatus.OK.value(),
+                                                EnumCommitteeTopicAssignmentSuccess.CANCELLED.getMessage(), response));
+        }
+
+        // lấy danh sách đề tài mà hội đồng chấm
+        @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
+        @GetMapping("/defense-committee/{defenseCommitteeId}")
+        public ResponseEntity<ApiResponse<List<CommitteeTopicAssignmentResponse>>> getByDefenseCommitteeController(
+                        @PathVariable Long defenseCommitteeId) {
+                List<CommitteeTopicAssignmentResponse> response = committeeTopicAssignmentService
+                                .getAllByDefenseCommitteeService(defenseCommitteeId);
+                return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(),
+                                EnumCommitteeTopicAssignmentSuccess.GET_ALL.getMessage(), response));
+        }
+
+        // giảng viên xem lịch chấm của mình
+        @PreAuthorize(HAS_ROLE_LECTURER)
+        @GetMapping("/me")
+        public ResponseEntity<ApiResponse<List<CommitteeTopicAssignmentResponse>>> getMyAssignmentsAsLecturerController(
+                        Authentication authentication) {
+                List<CommitteeTopicAssignmentResponse> response = committeeTopicAssignmentService
+                                .getMyAssignmentsAsLecturerService(authentication.getName());
+                return ResponseEntity.ok(
+                                ApiResponse.success(HttpStatus.OK.value(),
+                                                EnumCommitteeTopicAssignmentSuccess.GET_ALL.getMessage(), response));
+        }
+
+        // xem theo nhóm sinh viên
+        @PreAuthorize(HAS_ROLE_STUDENT)
+        @GetMapping("/my-group")
+        public ResponseEntity<ApiResponse<List<CommitteeTopicAssignmentResponse>>> getMyGroupAssignmentsController(
+                        Authentication authentication) {
+                List<CommitteeTopicAssignmentResponse> response = committeeTopicAssignmentService
+                                .getMyGroupAssignmentsAsStudentService(authentication.getName());
                 return ResponseEntity.ok(
                                 ApiResponse.success(HttpStatus.OK.value(),
                                                 EnumCommitteeTopicAssignmentSuccess.GET_ALL.getMessage(), response));
