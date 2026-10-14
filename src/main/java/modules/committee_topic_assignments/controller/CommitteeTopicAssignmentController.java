@@ -1,12 +1,12 @@
 package modules.committee_topic_assignments.controller;
 
+import static global.security.PermissionConstants.HAS_ANY_ROLE_ADMIN_LECTURER;
 import static global.security.PermissionConstants.HAS_ROLE_ADMIN;
 import static global.security.PermissionConstants.HAS_ROLE_LECTURER;
 import static global.security.PermissionConstants.HAS_ROLE_STUDENT;
-import static global.security.PermissionConstants.HAS_ANY_ROLE_ADMIN_LECTURER;
+
 import java.util.List;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -80,7 +80,7 @@ public class CommitteeTopicAssignmentController {
 
         // hoàn thành bảo vệ đồ án xong
         @PreAuthorize(HAS_ROLE_ADMIN)
-        @GetMapping("/{id}/complete")
+        @PatchMapping("/{id}/complete")
         public ResponseEntity<ApiResponse<CommitteeTopicAssignmentResponse>> completeCommitteeTopicAssignmentController(
                         @PathVariable Long id) {
                 CommitteeTopicAssignmentResponse response = committeeTopicAssignmentService
@@ -90,7 +90,7 @@ public class CommitteeTopicAssignmentController {
         }
 
         @PreAuthorize(HAS_ROLE_ADMIN)
-        @GetMapping("/{id}/cancel")
+        @PatchMapping("/{id}/cancel")
         public ResponseEntity<ApiResponse<CommitteeTopicAssignmentResponse>> cancelCommitteeTopicAssignmentController(
                         @PathVariable Long id) {
                 CommitteeTopicAssignmentResponse response = committeeTopicAssignmentService
