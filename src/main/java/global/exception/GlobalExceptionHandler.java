@@ -21,6 +21,7 @@ import modules.topic_registrations.exception.TopicRegistrationException;
 import modules.topics.exception.TopicException;
 import modules.lecturers.exception.LecturerException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import modules.evaluations.exception.EvaluationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -141,6 +142,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CommitteeTopicAssignmentException.class)
     public ResponseEntity<Map<String, Object>> handleCommitteeTopicAssignmentException(
             CommitteeTopicAssignmentException exception) {
+        return response(HttpStatus.CONFLICT, exception.getMessage(), null);
+    }
+
+    // Evaluation Exception handler
+    @ExceptionHandler(EvaluationException.class)
+    public ResponseEntity<Map<String, Object>> handleEvaluationException(
+            EvaluationException exception) {
         return response(HttpStatus.CONFLICT, exception.getMessage(), null);
     }
 }
