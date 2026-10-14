@@ -56,4 +56,33 @@ public class EvaluationController {
                         response));
     }
 
+    // Xem danh sách điểm của sự phân công
+    @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
+    @GetMapping("/assignments/{assignmentId}")
+    public ResponseEntity<ApiResponse<List<EvaluationResponse>>> getEvaluationsByAssignmentController(
+            @PathVariable Long id) {
+        List<EvaluationResponse> response = evaluationService.getEvaluationsByAssignmentService(id);
+        return ResponseEntity.ok(
+                ApiResponse.success(HttpStatus.OK.value(), EnumEvaluationSuccess.GET_ALL.getMessage(), response));
+    }
+
+    // Xem kết quả cuối cùng
+    @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER_STUDENT)
+    @GetMapping("/assignments/{assignmentId}/result")
+    public ResponseEntity<ApiResponse<FinalResultResponse>> getFinalResultByAssignmentController(
+            @PathVariable Long assignmentId) {
+        FinalResultResponse response = evaluationService.getFinalResultByAssignmentService(assignmentId);
+        return ResponseEntity.ok(
+                ApiResponse.success(HttpStatus.OK.value(), EnumEvaluationSuccess.GET_RESULT.getMessage(), response));
+    }
+
+    // lấy theo nhóm sinh viên
+    @PreAuthorize(HAS_ROLE_STUDENT)
+    @GetMapping("/my-group")
+    public ResponseEntity<ApiResponse<List<FinalResultResponse>>> getMyGroupFinalResultController(
+            Authentication authentication) {
+        List<FinalResultResponse> response = evaluationService.getMyGroupFinalResultService(authentication.getName());
+        return ResponseEntity.ok(
+                ApiResponse.success(HttpStatus.OK.value(), EnumEvaluationSuccess.GET_RESULT.getMessage(), response));
+    }
 }
