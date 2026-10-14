@@ -29,6 +29,7 @@ import modules.evaluations.repository.FinalResultRepository;
 import modules.lecturers.entity.Lecturer;
 import modules.lecturers.repository.LecturerRepository;
 import modules.student_group.repository.GroupMemberRepository;
+import modules.students.entity.Student;
 import modules.students.repository.StudentRepository;
 
 @Service
@@ -149,6 +150,26 @@ public class EvaluationService {
                 .orElseThrow(() -> new EvaluationException(EnumEvaluationError.RESULT_NOT_FOUND));
         return evaluationMapper.toFinalResultResponse(finalResult,
                 evaluationRepository.findAllByCommitteeTopicAssignmentId(assignmentId));
+    }
+
+    // sinh viên xem lại điểm của nhóm mình
+    @Transactional(readOnly = true)
+    public List<FinalResultResponse> getMyGroupFinalResultService(String username) {
+        Student student = studentRepository.findByUserUsername(username)
+                .orElseThrow(() -> new EvaluationException(EnumEvaluationError.STUDENT_NOT_FOUND));
+        // lấy nhóm sinh viên đã tham gia
+        List<Long> studentGroupIds = groupMemberRepository.findAllByStudentGroupId(student.getUserId()).stream()
+                .map(groupMember -> groupMember.getStudentGroup().getId()).distinct().toList();
+        if (studentGroupIds.isEmpty()) {
+            return List.of();
+        }
+
+        // lấy kết quả đã công bố
+        return finalResultRepository.findAllByCommitteeTopicAssignmentIdInAndPublishedTrue(studentGroupIds).stream()
+                .map(finalResult -> evaluationMapper.toFinalResultResponse(finalResult, evaluationRepository
+                        .findAllByCommitteeTopicAssignmentId(finalResult.getCommitteeTopicAssignment().getId())))
+                .toList();
+
     }
 
     // func helper
