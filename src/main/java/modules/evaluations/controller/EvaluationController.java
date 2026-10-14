@@ -4,7 +4,6 @@ import static global.security.PermissionConstants.HAS_ANY_ROLE_ADMIN_LECTURER;
 import static global.security.PermissionConstants.HAS_ANY_ROLE_ADMIN_LECTURER_STUDENT;
 import static global.security.PermissionConstants.HAS_ROLE_LECTURER;
 import static global.security.PermissionConstants.HAS_ROLE_STUDENT;
-import modules.auth.repository.RefreshTokenRepository;
 import modules.evaluations.service.EvaluationService;
 
 import java.util.List;
@@ -60,8 +59,8 @@ public class EvaluationController {
     @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
     @GetMapping("/assignments/{assignmentId}")
     public ResponseEntity<ApiResponse<List<EvaluationResponse>>> getEvaluationsByAssignmentController(
-            @PathVariable Long id) {
-        List<EvaluationResponse> response = evaluationService.getEvaluationsByAssignmentService(id);
+            @PathVariable Long assignmentId) {
+        List<EvaluationResponse> response = evaluationService.getEvaluationsByAssignmentService(assignmentId);
         return ResponseEntity.ok(
                 ApiResponse.success(HttpStatus.OK.value(), EnumEvaluationSuccess.GET_ALL.getMessage(), response));
     }
