@@ -134,12 +134,21 @@ public class EvaluationService {
 
     }
 
-    // xem theo của 1 sự phân công
+    // hội đồng/admin xem điểm thành phần của 1 phân công
     @Transactional(readOnly = true)
     public List<EvaluationResponse> getEvaluationsByAssignmentService(Long assignmentId) {
         findCommitteeTopicAssignmentById(assignmentId);
         return evaluationRepository.findAllByCommitteeTopicAssignmentId(assignmentId).stream()
                 .map(evaluationMapper::toEvaluationResponse).toList();
+    }
+
+    // xem theo kết quả cuối cùng
+    @Transactional(readOnly = true)
+    public FinalResultResponse getFinalResultByAssignmentService(Long assignmentId) {
+        FinalResult finalResult = finalResultRepository.findByCommitteeTopicAssignmentId(assignmentId)
+                .orElseThrow(() -> new EvaluationException(EnumEvaluationError.RESULT_NOT_FOUND));
+        return evaluationMapper.toFinalResultResponse(finalResult,
+                evaluationRepository.findAllByCommitteeTopicAssignmentId(assignmentId));
     }
 
     // func helper
