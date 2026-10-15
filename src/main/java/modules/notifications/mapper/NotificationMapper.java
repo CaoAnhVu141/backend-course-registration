@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import modules.notifications.dto.NotificationResponse;
 import modules.notifications.entity.Notification;
 
+@Component
 public class NotificationMapper {
 
     public NotificationResponse toResponse(Notification notification) {
