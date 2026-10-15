@@ -20,6 +20,8 @@ import modules.submissions.exception.SubmissionException;
 import modules.topic_registrations.exception.TopicRegistrationException;
 import modules.topics.exception.TopicException;
 import modules.lecturers.exception.LecturerException;
+import modules.notifications.exception.NotificationException;
+
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import modules.evaluations.exception.EvaluationException;
 
@@ -149,6 +151,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EvaluationException.class)
     public ResponseEntity<Map<String, Object>> handleEvaluationException(
             EvaluationException exception) {
+        return response(HttpStatus.CONFLICT, exception.getMessage(), null);
+    }
+
+    // Notification Exception handler
+    @ExceptionHandler(NotificationException.class)
+    public ResponseEntity<Map<String, Object>> handleNotificationException(
+            NotificationException exception) {
         return response(HttpStatus.CONFLICT, exception.getMessage(), null);
     }
 }
