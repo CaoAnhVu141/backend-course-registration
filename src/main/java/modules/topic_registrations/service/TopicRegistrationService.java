@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import modules.auth.entity.User;
 import modules.auth.repository.UserRepository;
 import modules.student_group.entity.StudentGroup;
+import modules.student_group.repository.GroupMemberRepository;
 import modules.student_group.repository.StudentGroupRepository;
 import modules.topic_registrations.dto.CreateTopicRegistrationRequest;
 import modules.topic_registrations.dto.RejectTopicRegistrationRequest;
@@ -35,6 +36,7 @@ public class TopicRegistrationService {
     private final UserRepository userRepository;
     private final TopicRegistrationMapper topicRegistrationMapper;
     private final RegistrationPeriodRepository registrationPeriodRepository;
+    private final GroupMemberRepository groupMemberRepository;
 
     @Transactional
     public TopicRegistrationResponse createTopicRegistrationService(
@@ -166,17 +168,6 @@ public class TopicRegistrationService {
     }
 
     // Xóa đề tài đăng kí
-    // @Transactional
-    // public TopicRegistrationResponse cancelTopicRegistrationService(Long id,
-    // String username) {
-    // TopicRegistration topicRegistration = findTopicRegistrationById(id);
-    // if (topicRegistration.getStatus() != TopicRegistrationStatus.PENDING) {
-    // throw new
-    // TopicRegistrationException(EnumTopicRegistrationError.INVALID_TOPIC_REGISTRATION_STATUS);
-    // }
-    // topicRegistration.setStatus(TopicRegistrationStatus.CANCELLED);
-    // return topicRegistrationMapper.toResponse(topicRegistration);
-    // }
     @Transactional
     public TopicRegistrationResponse cancelTopicRegistrationService(Long id, String username) {
         User user = findUserByUsername(username);
@@ -193,6 +184,22 @@ public class TopicRegistrationService {
         topicRegistration.setStatus(TopicRegistrationStatus.CANCELLED);
 
         return topicRegistrationMapper.toResponse(topicRegistration);
+    }
+
+    // xem đăng kí đề tài của sinh viên (lịch sử đăng kí)
+    @Transactional(readOnly = true)
+    public List<TopicRegistrationResponse> getMyTopicRegistrationService(String username) {
+        User user = findUserByUsername(username);
+
+        // các nhóm sinh viên từng tham gia
+        List<Long> groupIds = groupMemberRepository.findAllByStudentUserId(user.getId()).stream().map(
+                groupMember -> groupMember.getStudentGroup().getId()).distinct().toList();
+        if (groupIds.isEmpty()) {
+            return List.of();
+        }
+        return topicRegistrationRepository.findAllByStudentGroupIdIn(groupIds).stream()
+                .map(topicRegistrationMapper::toResponse)
+                .toList();
     }
 
     // function helper

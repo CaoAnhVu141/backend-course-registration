@@ -18,4 +18,8 @@ public interface TopicRegistrationRepository extends JpaRepository<TopicRegistra
     List<TopicRegistration> findAllByTopicId(Long topicId);
 
     List<TopicRegistration> findAllByStudentGroupId(Long studentGroupId);
+
+    // lấy thông tin đăng kí nhóm của sinh viên theo nhóm nào
+    List<TopicRegistration> findAllByStudentGroupIdIn(List<Long> studentGroupIds);
+
 }
