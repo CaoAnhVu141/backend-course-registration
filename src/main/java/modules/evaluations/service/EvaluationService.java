@@ -157,15 +157,23 @@ public class EvaluationService {
         public List<FinalResultResponse> getMyGroupFinalResultService(String username) {
                 Student student = studentRepository.findByUserUsername(username)
                                 .orElseThrow(() -> new EvaluationException(EnumEvaluationError.STUDENT_NOT_FOUND));
-                // lấy nhóm sinh viên đã tham gia
-                List<Long> studentGroupIds = groupMemberRepository.findAllByStudentGroupId(student.getUserId()).stream()
+                // lấy các nhóm mà sinh viên này tham gia
+                List<Long> studentGroupIds = groupMemberRepository.findAllByStudentUserId(student.getUserId()).stream()
                                 .map(groupMember -> groupMember.getStudentGroup().getId()).distinct().toList();
                 if (studentGroupIds.isEmpty()) {
                         return List.of();
                 }
 
-                // lấy kết quả đã công bố
-                return finalResultRepository.findAllByCommitteeTopicAssignmentIdInAndPublishedTrue(studentGroupIds)
+                // lấy các phân công đề tài của những nhóm đó
+                List<Long> assignmentIds = committeeTopicAssignmentRepository
+                                .findAllByTopicRegistrationStudentGroupIdIn(assignmentIds).stream()
+                                .map(CommitteeTopicAssignment::getId).toList();
+                if (assignmentIds.isEmpty()) {
+                        return List.of();
+                }
+
+                // lấy kết quả đã công bố của các phân công đó
+                return finalResultRepository.findAllByCommitteeTopicAssignmentIdInAndPublishedTrue(assignmentIds)
                                 .stream()
                                 .map(finalResult -> evaluationMapper.toFinalResultResponse(finalResult,
                                                 evaluationRepository
