@@ -166,7 +166,9 @@ public class EvaluationService {
 
                 // lấy các phân công đề tài của những nhóm đó
                 List<Long> assignmentIds = committeeTopicAssignmentRepository
-                                .findAllByTopicRegistrationStudentGroupIdIn(assignmentIds).stream()
+                                .findAllByTopicRegistrationStudentGroupIdIn(
+                                                studentGroupIds)
+                                .stream()
                                 .map(CommitteeTopicAssignment::getId).toList();
                 if (assignmentIds.isEmpty()) {
                         return List.of();

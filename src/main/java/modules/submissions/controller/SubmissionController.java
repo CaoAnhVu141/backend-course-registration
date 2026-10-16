@@ -31,12 +31,22 @@ import modules.submissions.service.SubmissionService;
 import modules.submissions.dto.CreateSubmissionFeedbackRequest;
 import modules.submissions.dto.SubmissionFeedbackResponse;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+import global.storage.FileStorageService;
+import modules.submissions.entity.SubmissionVersion;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+
 @RestController
 @RequestMapping("/api/submissions")
 @RequiredArgsConstructor
 public class SubmissionController {
 
         private final SubmissionService submissionService;
+        private final FileStorageService fileStorageService;
 
         @PreAuthorize(HAS_ROLE_STUDENT)
         @PostMapping
@@ -67,17 +77,33 @@ public class SubmissionController {
                                                 EnumSubmissionSuccess.GET_DETAIL.getMessage(), response));
         }
 
-        // Nộp báo cáo
+        // sinh viên nộp báo cáo
         @PreAuthorize(HAS_ROLE_STUDENT)
-        @PostMapping("/versions")
+        @PostMapping(value = "/versions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         public ResponseEntity<ApiResponse<SubmissionVersionResponse>> createSubmissionVersionController(
-                        @Valid @RequestBody CreateSubmissionVersionRequest request,
+                        @RequestParam Long submissionId,
+                        @RequestParam(required = false) String changeNote,
+                        @RequestPart("file") MultipartFile file,
                         Authentication authentication) {
-                SubmissionVersionResponse response = submissionService.createSubmissionVersionService(request,
-                                authentication.getName());
+                SubmissionVersionResponse response = submissionService.createSubmissionVersionService(submissionId,
+                                changeNote, file, authentication.getName());
                 return ResponseEntity.ok(
                                 ApiResponse.success(HttpStatus.OK.value(),
                                                 EnumSubmissionSuccess.VERSION_CREATED.getMessage(), response));
+        }
+
+        // tải file của 1 phiên bản báo cáo
+        @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER_STUDENT)
+        @GetMapping("/versions/{versionId}/download")
+        public ResponseEntity<Resource> downloadSubmissionVersionController(@PathVariable Long versionId) {
+                SubmissionVersion version = submissionService.getSubmissionVersionForDownloadService(versionId);
+                Resource resource = fileStorageService.loadAsResource(version.getStorageKey());
+                String contentType = version.getMimeType() != null ? version.getMimeType() : "application/octet-stream";
+                return ResponseEntity.ok()
+                                .contentType(MediaType.parseMediaType(contentType))
+                                .header(HttpHeaders.CONTENT_DISPOSITION,
+                                                "attachment; filename=\"" + version.getFileName() + "\"")
+                                .body(resource);
         }
 
         // Lấy theo đề tài đăng kí

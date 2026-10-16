@@ -26,6 +26,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import modules.student_group.enums.GroupMemberRole;
 import modules.student_group.repository.GroupMemberRepository;
+import org.springframework.web.multipart.MultipartFile;
+import global.storage.FileStorageService;
+import modules.submissions.entity.SubmissionVersion;
 
 import org.springframework.stereotype.Service;
 
@@ -44,6 +47,7 @@ public class SubmissionService {
         private final SubmissionFeedbackRepository submissionFeedbackRepository;
         private final LecturerRepository lecturerRepository;
         private final GroupMemberRepository groupMemberRepository;
+        private final FileStorageService fileStorageService;
 
         @Transactional
         public SubmissionResponse createSubmissionService(CreateSubmissionRequest createSubmissionRequest,
@@ -81,21 +85,31 @@ public class SubmissionService {
 
         @Transactional
         public SubmissionVersionResponse createSubmissionVersionService(
-                        CreateSubmissionVersionRequest createSubmissionVersionRequest, String username) {
+                        Long submissionId, String changeNote,
+                        MultipartFile file, String username) {
                 User user = userRepository.findByUsername(username)
                                 .orElseThrow(() -> new SubmissionException(EnumSubmissionError.USER_NOT_FOUND));
-                Submission submission = findSubmissionById(createSubmissionVersionRequest.getSubmissionId());
+                Submission submission = findSubmissionById(submissionId);
+                // lưu file thật xuống đĩa, lấy storageKey
+                String storageKey = fileStorageService.store(file);
                 SubmissionVersion submissionVersion = submissionVersionRepository.save(
                                 SubmissionVersion.builder()
                                                 .submission(submission)
-                                                .fileName(createSubmissionVersionRequest.getFileName())
-                                                .storageKey(createSubmissionVersionRequest.getStorageKey())
-                                                .mimeType(createSubmissionVersionRequest.getMimeType())
-                                                .fileSize(createSubmissionVersionRequest.getFileSize())
-                                                .changeNote(createSubmissionVersionRequest.getChangeNote())
+                                                .fileName(file.getOriginalFilename())
+                                                .storageKey(storageKey)
+                                                .mimeType(file.getContentType())
+                                                .fileSize(file.getSize())
+                                                .changeNote(changeNote)
                                                 .uploadedBy(user.getEmail())
                                                 .build());
                 return submissionMapper.toSubmissionVersionResponse(submissionVersion);
+        }
+
+        // lấy version bản báo cáo
+        @Transactional(readOnly = true)
+        public SubmissionVersion getSubmissionVersionForDownloadService(Long versionId) {
+                return submissionVersionRepository.findById(versionId).orElseThrow(
+                                () -> new SubmissionException(EnumSubmissionError.SUBMISSION_VERSION_NOT_FOUND));
         }
 
         @Transactional(readOnly = true)
@@ -124,7 +138,6 @@ public class SubmissionService {
                                 submissionVersionRepository.findAllBySubmissionId(submission.getId()));
         }
 
-        // xử lý feedback cho báo cáo
         // xử lý feedback cho báo cáo
         @Transactional
         public SubmissionFeedbackResponse createSubmissionFeedbackService(
