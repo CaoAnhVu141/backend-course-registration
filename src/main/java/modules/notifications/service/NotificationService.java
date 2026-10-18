@@ -18,6 +18,7 @@ import modules.notifications.enums.NotificationType;
 import modules.notifications.exception.NotificationException;
 import modules.notifications.mapper.NotificationMapper;
 import modules.notifications.repository.NotificationRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final NotificationMapper notificationMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public int createNotificationService(CreateNotificationRequest request) {
@@ -60,7 +62,11 @@ public class NotificationService {
                         .build())
                 .toList();
         notificationRepository.saveAll(notifications);
-        // @TODO: sau này thêm WebSocket push ở đây
+        // websocket
+        notifications.forEach(n -> messagingTemplate.convertAndSendToUser(
+                n.getUser().getUsername(),
+                "/queue/notifications",
+                notificationMapper.toResponse(n)));
     }
 
     // thông báo của tôi (mới nhất trước)
