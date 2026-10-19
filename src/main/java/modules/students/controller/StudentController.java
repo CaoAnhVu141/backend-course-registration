@@ -53,6 +53,19 @@ public class StudentController {
                         response));
     }
 
+    // Tra cứu sinh viên theo mã số (dùng khi thêm thành viên nhóm)
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER', 'STUDENT')")
+    @GetMapping("/by-code/{studentCode}")
+    public ResponseEntity<ApiResponse<StudentResponse>> getStudentByCodeController(
+            @PathVariable String studentCode) {
+        StudentResponse response = studentService.getStudentByCodeService(studentCode);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumStudentSuccess.GET_DETAIL.getMessage(),
+                        response));
+    }
+
     @PreAuthorize("hasRole('STUDENT')")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<StudentResponse>> getMyProfileController(Authentication authentication) {

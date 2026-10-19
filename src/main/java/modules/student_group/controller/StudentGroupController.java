@@ -62,6 +62,17 @@ public class StudentGroupController {
                         response));
     }
 
+    // Sinh viên xem nhóm của chính mình
+    @PreAuthorize(HAS_ROLE_STUDENT)
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<StudentGroupResponse>>> getMyStudentGroupsController(
+            Authentication authentication) {
+        List<StudentGroupResponse> response = studentGroupService
+                .getMyStudentGroupsService(authentication.getName());
+        return ResponseEntity.ok(
+                ApiResponse.success(HttpStatus.OK.value(), EnumStudentGroupSuccess.GET_ALL.getMessage(), response));
+    }
+
     @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<StudentGroupResponse>> getStudentGroupByIdController(@PathVariable Long id) {
