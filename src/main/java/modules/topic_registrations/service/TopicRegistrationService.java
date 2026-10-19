@@ -25,7 +25,6 @@ import modules.registration_period.repository.RegistrationPeriodRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import modules.topic_registrations.export.TopicRegistrationExportExcelService;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +37,6 @@ public class TopicRegistrationService {
     private final TopicRegistrationMapper topicRegistrationMapper;
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final GroupMemberRepository groupMemberRepository;
-    private final TopicRegistrationExportExcelService topicRegistrationExportExcelService;
 
     @Transactional
     public TopicRegistrationResponse createTopicRegistrationService(
@@ -108,11 +106,6 @@ public class TopicRegistrationService {
                 .stream()
                 .map(topicRegistrationMapper::toResponse)
                 .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public byte[] exportTopicRegistrationsToExcelService() {
-        return topicRegistrationExportExcelService.export(getAllTopicRegistrationsService());
     }
 
     @Transactional(readOnly = true)

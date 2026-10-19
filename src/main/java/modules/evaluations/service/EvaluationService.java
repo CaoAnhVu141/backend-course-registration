@@ -26,7 +26,6 @@ import modules.evaluations.exception.EvaluationException;
 import modules.evaluations.mapper.EvaluationMapper;
 import modules.evaluations.repository.EvaluationRepository;
 import modules.evaluations.repository.FinalResultRepository;
-import modules.evaluations.export.EvaluationExportExcelService;
 import modules.lecturers.entity.Lecturer;
 import modules.lecturers.repository.LecturerRepository;
 import modules.student_group.repository.GroupMemberRepository;
@@ -46,7 +45,6 @@ public class EvaluationService {
         private final GroupMemberRepository groupMemberRepository;
         private final UserRepository userRepository;
         private final EvaluationMapper evaluationMapper;
-        private final EvaluationExportExcelService evaluationExportExcelService;
 
         @Transactional
         public EvaluationResponse createEvaluationService(CreateEvaluationRequest createEvaluationRequest,
@@ -143,20 +141,6 @@ public class EvaluationService {
                 findCommitteeTopicAssignmentById(assignmentId);
                 return evaluationRepository.findAllByCommitteeTopicAssignmentId(assignmentId).stream()
                                 .map(evaluationMapper::toEvaluationResponse).toList();
-        }
-
-        @Transactional(readOnly = true)
-        public List<FinalResultResponse> getAllFinalResultsService() {
-                return finalResultRepository.findAll().stream()
-                                .map(finalResult -> evaluationMapper.toFinalResultResponse(finalResult,
-                                                evaluationRepository.findAllByCommitteeTopicAssignmentId(
-                                                                finalResult.getCommitteeTopicAssignment().getId())))
-                                .toList();
-        }
-
-        @Transactional(readOnly = true)
-        public byte[] exportStatisticsToExcelService() {
-                return evaluationExportExcelService.exportStatistics(getAllFinalResultsService());
         }
 
         // xem theo kết quả cuối cùng

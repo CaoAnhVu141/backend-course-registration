@@ -20,7 +20,6 @@ import modules.student_group.repository.StudentGroupRepository;
 import modules.students.entity.Student;
 import modules.students.repository.StudentRepository;
 import modules.student_group.dto.StudentGroupResponse;
-import modules.student_group.export.StudentGroupExportExcelService;
 import java.util.HashSet;
 
 import java.time.LocalDateTime;
@@ -34,7 +33,6 @@ public class StudentGroupService {
         private final StudentGroupMapper studentGroupMapper;
         private final RegistrationPeriodRepository registrationPeriodRepository;
         private final StudentRepository studentRepository;
-        private final StudentGroupExportExcelService studentGroupExportExcelService;
         private static final int maxGroupMembers = 3;
 
         @Transactional
@@ -104,14 +102,6 @@ public class StudentGroupService {
                                 .map(studentGroup -> studentGroupMapper.toResponse(studentGroup,
                                                 groupMemberRepository.findAllByStudentGroupId(studentGroup.getId())))
                                 .toList();
-        }
-
-        @Transactional(readOnly = true)
-        public byte[] exportStudentGroupsToExcelService(Long registrationPeriodId) {
-                List<StudentGroupResponse> groups = registrationPeriodId == null
-                                ? getAllStudentGroupService()
-                                : getAllByRegistrationPeriodService(registrationPeriodId);
-                return studentGroupExportExcelService.export(groups, registrationPeriodId);
         }
 
         @Transactional(readOnly = true)

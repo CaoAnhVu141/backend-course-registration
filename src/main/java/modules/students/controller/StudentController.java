@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import modules.students.dto.RegisterStudentRequest;
 import modules.students.dto.StudentResponse;
 import modules.students.service.StudentService;
-import modules.students.export.ExportExcelService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import global.response.ApiResponse;
@@ -41,12 +40,6 @@ public class StudentController {
                         HttpStatus.OK.value(),
                         EnumStudentSuccess.GET_ALL.getMessage(),
                         response));
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
-    @GetMapping("/export")
-    public ResponseEntity<byte[]> exportStudentsController() {
-        return ExportExcelService.download(studentService.exportStudentsToExcelService(), "sinh-vien");
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")

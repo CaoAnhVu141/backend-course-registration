@@ -26,7 +26,6 @@ import modules.topics.exception.TopicException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import modules.topics.export.TopicExportExcelService;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +37,6 @@ public class TopicService {
     private final DepartmentRepository departmentRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final TopicMapper topicMapper;
-    private final TopicExportExcelService topicExportExcelService;
 
     @Transactional
     public TopicResponse createTopicService(CreateTopicRequest request, String username) {
@@ -82,11 +80,6 @@ public class TopicService {
                 .stream()
                 .map(topic -> topicMapper.toResponse(topic, getSupervisorIds(topic.getId())))
                 .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public byte[] exportTopicsToExcelService() {
-        return topicExportExcelService.export(getAllTopicsService());
     }
 
     // Lấy đề tài đã được duyệt
