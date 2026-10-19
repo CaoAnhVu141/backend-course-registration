@@ -9,7 +9,6 @@ import modules.topic_registrations.dto.TopicRegistrationResponse;
 import modules.topic_registrations.entity.TopicRegistration;
 import modules.topic_registrations.enums.EnumTopicRegistrationSuccess;
 import modules.topic_registrations.service.TopicRegistrationService;
-import modules.students.export.ExportExcelService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.method.P;
@@ -53,14 +52,6 @@ public class TopicRegistrationController {
                                                 HttpStatus.OK.value(),
                                                 EnumTopicRegistrationSuccess.GET_ALL.getMessage(),
                                                 response));
-        }
-
-        @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
-        @GetMapping("/export")
-        public ResponseEntity<byte[]> exportTopicRegistrationsController() {
-                return ExportExcelService.download(
-                                topicRegistrationService.exportTopicRegistrationsToExcelService(),
-                                "dang-ky-de-tai");
         }
 
         @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER_STUDENT)

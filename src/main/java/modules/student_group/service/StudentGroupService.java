@@ -20,7 +20,6 @@ import modules.student_group.repository.StudentGroupRepository;
 import modules.students.entity.Student;
 import modules.students.repository.StudentRepository;
 import modules.student_group.dto.StudentGroupResponse;
-import modules.student_group.export.StudentGroupExportExcelService;
 import java.util.HashSet;
 
 import java.time.LocalDateTime;
@@ -34,7 +33,6 @@ public class StudentGroupService {
         private final StudentGroupMapper studentGroupMapper;
         private final RegistrationPeriodRepository registrationPeriodRepository;
         private final StudentRepository studentRepository;
-        private final StudentGroupExportExcelService studentGroupExportExcelService;
         private static final int maxGroupMembers = 3;
 
         @Transactional
@@ -106,12 +104,17 @@ public class StudentGroupService {
                                 .toList();
         }
 
+        // Sinh viên xem các nhóm của chính mình
         @Transactional(readOnly = true)
-        public byte[] exportStudentGroupsToExcelService(Long registrationPeriodId) {
-                List<StudentGroupResponse> groups = registrationPeriodId == null
-                                ? getAllStudentGroupService()
-                                : getAllByRegistrationPeriodService(registrationPeriodId);
-                return studentGroupExportExcelService.export(groups, registrationPeriodId);
+        public List<StudentGroupResponse> getMyStudentGroupsService(String username) {
+                Student student = studentRepository.findByUserUsername(username)
+                                .orElseThrow(() -> new StudentGroupException(EnumStudentGroupError.STUDENT_NOT_FOUND));
+                return groupMemberRepository.findAllByStudentUserId(student.getUserId()).stream()
+                                .map(GroupMember::getStudentGroup)
+                                .distinct()
+                                .map(studentGroup -> studentGroupMapper.toResponse(studentGroup,
+                                                groupMemberRepository.findAllByStudentGroupId(studentGroup.getId())))
+                                .toList();
         }
 
         @Transactional(readOnly = true)

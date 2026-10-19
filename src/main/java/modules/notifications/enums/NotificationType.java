@@ -5,7 +5,7 @@ public enum NotificationType {
     TOPIC_PUBLISHED, // đề tài được công bố
     REGISTRATION_DECISION, // đăng ký đề tài được duyệt/từ chối
     FEEDBACK, // có góp ý báo cáo
-    RESULT_PUBLISHED, // công bố điểm cuối,
-    SUBMISSION_SUBMITTED,
-    DEFENSE_SCHEDULED // đề tài được đưa ra hội đồng / có lịch bảo vệ
+    RESULT_PUBLISHED, // công bố điểm cuối
+    SUBMISSION_SUBMITTED, // nộp báo cáo thành công
+    DEFENSE_SCHEDULED // đưa ra hội đồng / có lịch bảo vệ
 }

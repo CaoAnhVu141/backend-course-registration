@@ -15,7 +15,6 @@ import modules.departments.repository.DepartmentRepository;
 import modules.students.dto.UpdateStudentRequest;
 import modules.students.enums.EnumStudentError;
 import modules.students.exception.StudentException;
-import modules.students.export.StudentExportExcelService;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,7 +25,6 @@ public class StudentService {
     private final UserAccountService userAccountService;
     private final StudentMapper studentMapper;
     private final DepartmentRepository departmentRepository;
-    private final StudentExportExcelService studentExportExcelService;
 
     @Transactional
     public StudentResponse register(RegisterStudentRequest request) {
@@ -58,18 +56,13 @@ public class StudentService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public byte[] exportStudentsToExcelService() {
-        return studentExportExcelService.export(getAllStudentsService());
-    }
-
     @Transactional
     public StudentResponse getStudentByIdService(Long userId) {
         Student student = findStudentById(userId);
         return studentMapper.toResponse(student);
     }
 
-    // Tra cứu sinh viên theo mã số (để thêm thành viên nhóm)
+    // Tra cứu sinh viên theo mã số
     @Transactional(readOnly = true)
     public StudentResponse getStudentByCodeService(String studentCode) {
         Student student = studentRepository.findByStudentCode(studentCode)

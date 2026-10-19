@@ -21,7 +21,6 @@ import modules.evaluations.dto.CreateEvaluationRequest;
 import modules.evaluations.dto.EvaluationResponse;
 import modules.evaluations.dto.FinalResultResponse;
 import modules.evaluations.enums.EnumEvaluationSuccess;
-import modules.students.export.ExportExcelService;
 
 @RestController
 @RequestMapping("/api/evaluations")
@@ -64,12 +63,6 @@ public class EvaluationController {
         List<EvaluationResponse> response = evaluationService.getEvaluationsByAssignmentService(assignmentId);
         return ResponseEntity.ok(
                 ApiResponse.success(HttpStatus.OK.value(), EnumEvaluationSuccess.GET_ALL.getMessage(), response));
-    }
-
-    @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
-    @GetMapping("/export")
-    public ResponseEntity<byte[]> exportStatisticsController() {
-        return ExportExcelService.download(evaluationService.exportStatisticsToExcelService(), "thong-ke");
     }
 
     // Xem kết quả cuối cùng

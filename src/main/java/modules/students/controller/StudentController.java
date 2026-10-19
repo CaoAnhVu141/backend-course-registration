@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import modules.students.dto.RegisterStudentRequest;
 import modules.students.dto.StudentResponse;
 import modules.students.service.StudentService;
-import modules.students.export.ExportExcelService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import global.response.ApiResponse;
@@ -44,15 +43,22 @@ public class StudentController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
-    @GetMapping("/export")
-    public ResponseEntity<byte[]> exportStudentsController() {
-        return ExportExcelService.download(studentService.exportStudentsToExcelService(), "sinh-vien");
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<StudentResponse>> getStudentByIdController(@PathVariable Long userId) {
         StudentResponse response = studentService.getStudentByIdService(userId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        EnumStudentSuccess.GET_DETAIL.getMessage(),
+                        response));
+    }
+
+    // Tra cứu sinh viên theo mã số (dùng khi thêm thành viên nhóm)
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER', 'STUDENT')")
+    @GetMapping("/by-code/{studentCode}")
+    public ResponseEntity<ApiResponse<StudentResponse>> getStudentByCodeController(
+            @PathVariable String studentCode) {
+        StudentResponse response = studentService.getStudentByCodeService(studentCode);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         HttpStatus.OK.value(),

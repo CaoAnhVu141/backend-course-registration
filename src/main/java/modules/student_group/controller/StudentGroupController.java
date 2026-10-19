@@ -2,11 +2,11 @@ package modules.student_group.controller;
 
 import global.response.ApiResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import modules.student_group.dto.CreateStudentGroupRequest;
 import modules.student_group.dto.StudentGroupResponse;
 import modules.student_group.enums.EnumStudentGroupSuccess;
 import modules.student_group.service.StudentGroupService;
-import modules.students.export.ExportExcelService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,13 +20,10 @@ import static global.security.PermissionConstants.HAS_ANY_ROLE_ADMIN_LECTURER;
 
 @RestController
 @RequestMapping("/api/student-groups")
+@RequiredArgsConstructor
 public class StudentGroupController {
 
     private final StudentGroupService studentGroupService;
-
-    public StudentGroupController(StudentGroupService studentGroupService) {
-        this.studentGroupService = studentGroupService;
-    }
 
     @PreAuthorize(HAS_ROLE_STUDENT)
     @PostMapping
@@ -51,15 +48,6 @@ public class StudentGroupController {
                 .ok(ApiResponse.success(HttpStatus.OK.value(), EnumStudentGroupSuccess.GET_ALL.getMessage(), response));
     }
 
-    @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
-    @GetMapping("/export")
-    public ResponseEntity<byte[]> exportStudentGroupsController(
-            @RequestParam(required = false) Long registrationPeriodId) {
-        return ExportExcelService.download(
-                studentGroupService.exportStudentGroupsToExcelService(registrationPeriodId),
-                "nhom-sinh-vien");
-    }
-
     // function lấy danh sách sinh viên theo nhóm sinh viên
     @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
     @GetMapping("/registration-period/{registrationPeriodId}")
@@ -72,6 +60,17 @@ public class StudentGroupController {
                         HttpStatus.OK.value(),
                         EnumStudentGroupSuccess.GET_ALL.getMessage(),
                         response));
+    }
+
+    // Sinh viên xem nhóm của chính mình
+    @PreAuthorize(HAS_ROLE_STUDENT)
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<StudentGroupResponse>>> getMyStudentGroupsController(
+            Authentication authentication) {
+        List<StudentGroupResponse> response = studentGroupService
+                .getMyStudentGroupsService(authentication.getName());
+        return ResponseEntity.ok(
+                ApiResponse.success(HttpStatus.OK.value(), EnumStudentGroupSuccess.GET_ALL.getMessage(), response));
     }
 
     @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)

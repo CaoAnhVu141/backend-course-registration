@@ -69,6 +69,14 @@ public class NotificationService {
                 notificationMapper.toResponse(n)));
     }
 
+    // tạo thông báo theo ROLE
+    @Transactional
+    public void notifyByRole(String roleName, NotificationType type, String title, String content) {
+        List<Long> userIds = userRepository.findAllByRolesName(roleName)
+                .stream().map(User::getId).toList();
+        notifyUsers(userIds, type, title, content);
+    }
+
     // thông báo của tôi (mới nhất trước)
     @Transactional(readOnly = true)
     public List<NotificationResponse> getMyNotificationsService(String username) {
