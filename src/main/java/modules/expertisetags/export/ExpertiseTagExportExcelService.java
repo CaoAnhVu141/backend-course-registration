@@ -15,8 +15,8 @@ public class ExpertiseTagExportExcelService {
     private final ExportExcelService excelService;
 
     public byte[] export(List<ExpertiseTagResponse> tags) {
-        List<List<?>> rows = tags.stream()
-                .map(tag -> Arrays.asList(tag.getId(), tag.getName(), tag.isStatus()))
+        List<? extends List<?>> rows = tags.stream()
+                .map(tag -> (List<?>) Arrays.asList(tag.getId(), tag.getName(), tag.isStatus()))
                 .toList();
         return excelService.export("Chuyên môn", "DANH SÁCH CHUYÊN MÔN",
                 Arrays.asList("Mã chuyên môn", "Tên chuyên môn", "Trạng thái"), rows);

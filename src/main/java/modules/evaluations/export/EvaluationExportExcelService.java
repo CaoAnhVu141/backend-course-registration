@@ -15,8 +15,8 @@ public class EvaluationExportExcelService {
     private final ExportExcelService excelService;
 
     public byte[] exportStatistics(List<FinalResultResponse> results) {
-        List<List<?>> rows = results.stream()
-                .map(result -> Arrays.asList(result.getId(), result.getAssignmentId(), result.getTopicId(),
+        List<? extends List<?>> rows = results.stream()
+                .map(result -> (List<?>) Arrays.asList(result.getId(), result.getAssignmentId(), result.getTopicId(),
                         result.getTopicTitle(), result.getStudentGroupId(), result.getStudentGroupName(),
                         result.getFinalScore(), result.isPublished(), result.getPublishedBy(), result.getPublishedAt(),
                         result.getEvaluations() == null ? 0 : result.getEvaluations().size()))

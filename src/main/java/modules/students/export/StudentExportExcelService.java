@@ -14,8 +14,8 @@ public class StudentExportExcelService {
     private final ExportExcelService excelService;
 
     public byte[] export(List<StudentResponse> students) {
-        List<List<?>> rows = students.stream()
-                .map(student -> Arrays.asList(student.getUserId(), student.getUsername(), student.getEmail(),
+        List<? extends List<?>> rows = students.stream()
+                .map(student -> (List<?>) Arrays.asList(student.getUserId(), student.getUsername(), student.getEmail(),
                         student.getStudentCode(), student.getDepartmentId(), student.getClassName(), student.getRoles()))
                 .toList();
         return excelService.export("Sinh viên", "DANH SÁCH SINH VIÊN",

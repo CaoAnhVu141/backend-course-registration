@@ -15,8 +15,8 @@ public class TopicRegistrationExportExcelService {
     private final ExportExcelService excelService;
 
     public byte[] export(List<TopicRegistrationResponse> registrations) {
-        List<List<?>> rows = registrations.stream()
-                .map(registration -> Arrays.asList(registration.getId(), registration.getStudentGroupId(),
+        List<? extends List<?>> rows = registrations.stream()
+                .map(registration -> (List<?>) Arrays.asList(registration.getId(), registration.getStudentGroupId(),
                         registration.getStudentGroupName(), registration.getTopicId(), registration.getTopicTitle(),
                         registration.getStatus(), registration.getRegisteredBy(), registration.getRegisteredAt(),
                         registration.getDecidedBy(), registration.getRejectionReason()))

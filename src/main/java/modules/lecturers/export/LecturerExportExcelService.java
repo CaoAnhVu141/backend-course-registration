@@ -15,8 +15,8 @@ public class LecturerExportExcelService {
     private final ExportExcelService excelService;
 
     public byte[] export(List<LecturerResponse> lecturers) {
-        List<List<?>> rows = lecturers.stream()
-                .map(lecturer -> Arrays.asList(lecturer.getUserId(), lecturer.getUsername(), lecturer.getEmail(),
+        List<? extends List<?>> rows = lecturers.stream()
+                .map(lecturer -> (List<?>) Arrays.asList(lecturer.getUserId(), lecturer.getUsername(), lecturer.getEmail(),
                         lecturer.getLecturerCode(), lecturer.getDepartmentId(), lecturer.getAcademicTitle(),
                         lecturer.getMaxReviewLoad(), lecturer.getExpertiseTagIds(), lecturer.getRoles()))
                 .toList();

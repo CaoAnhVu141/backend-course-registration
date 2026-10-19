@@ -15,8 +15,8 @@ public class CommitteeTopicAssignmentExportExcelService {
     private final ExportExcelService excelService;
 
     public byte[] export(List<CommitteeTopicAssignmentResponse> assignments) {
-        List<List<?>> rows = assignments.stream()
-                .map(assignment -> Arrays.asList(assignment.getId(), assignment.getDefenseCommitteeId(),
+        List<? extends List<?>> rows = assignments.stream()
+                .map(assignment -> (List<?>) Arrays.asList(assignment.getId(), assignment.getDefenseCommitteeId(),
                         assignment.getDefenseCommitteeCode(), assignment.getDefenseCommitteeName(),
                         assignment.getRegistrationPeriodId(), assignment.getTopicRegistrationId(),
                         assignment.getTopicId(), assignment.getTopicTitle(), assignment.getStudentGroupId(),

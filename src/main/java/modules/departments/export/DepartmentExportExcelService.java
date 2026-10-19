@@ -15,8 +15,8 @@ public class DepartmentExportExcelService {
     private final ExportExcelService excelService;
 
     public byte[] export(List<DepartmentResponse> departments) {
-        List<List<?>> rows = departments.stream()
-                .map(department -> Arrays.asList(department.getDepartmentId(), department.getName()))
+        List<? extends List<?>> rows = departments.stream()
+                .map(department -> (List<?>) Arrays.asList(department.getDepartmentId(), department.getName()))
                 .toList();
         return excelService.export("Phòng ban", "DANH SÁCH PHÒNG BAN",
                 Arrays.asList("Mã phòng ban", "Tên phòng ban"), rows);
