@@ -21,7 +21,7 @@ import modules.expertisetags.repository.ExpertiseTagRepository;
 import modules.lecturers.entity.LecturerExpertise;
 import modules.lecturers.entity.LecturerExpertiseId;
 import modules.lecturers.repository.LecturerExpertiseRepository;
-
+import modules.lecturers.export.LecturerExportExcelService;
 import java.util.Set;
 
 @Service
@@ -33,6 +33,7 @@ public class LecturerService {
     private final DepartmentRepository departmentRepository;
     private final ExpertiseTagRepository expertiseTagRepository;
     private final LecturerExpertiseRepository lecturerExpertiseRepository;
+    private final LecturerExportExcelService lecturerExportExcelService;
 
     @Transactional
     public LecturerResponse register(RegisterLecturerRequest request) {
@@ -63,6 +64,11 @@ public class LecturerService {
         return lecturerRepository.findAll().stream()
                 .map(lecturer -> lecturerMapper.toResponse(lecturer, getExpertiseTagIds(lecturer.getUserId())))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] exportLecturersToExcelService() {
+        return lecturerExportExcelService.export(getAllLecturerService());
     }
 
     @Transactional(readOnly = true)

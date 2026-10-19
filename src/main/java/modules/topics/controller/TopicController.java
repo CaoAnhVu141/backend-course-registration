@@ -9,6 +9,7 @@ import modules.topics.dto.TopicResponse;
 import modules.topics.dto.UpdateTopicRequest;
 import modules.topics.enums.EnumTopicSuccess;
 import modules.topics.service.TopicService;
+import modules.students.export.ExportExcelService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,6 +54,12 @@ public class TopicController {
                                                 HttpStatus.OK.value(),
                                                 EnumTopicSuccess.GET_ALL.getMessage(),
                                                 response));
+        }
+
+        @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
+        @GetMapping("/export")
+        public ResponseEntity<byte[]> exportTopicsController() {
+                return ExportExcelService.download(topicService.exportTopicsToExcelService(), "de-tai");
         }
 
         @PreAuthorize(HAS_ROLE_STUDENT)

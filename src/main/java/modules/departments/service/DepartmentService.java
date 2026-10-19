@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import modules.departments.exceptions.DepartmentException;
 import modules.departments.enums.EnumDepartmentError;
+import modules.departments.export.DepartmentExportExcelService;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import java.util.List;
 public class DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final DepartmentMapper departmentMapper;
+    private final DepartmentExportExcelService departmentExportExcelService;
 
     @Transactional
     public DepartmentResponse createDepartmentService(CreateDepartmentRequest request) {
@@ -39,6 +41,11 @@ public class DepartmentService {
                 .stream()
                 .map(departmentMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] exportDepartmentsToExcelService() {
+        return departmentExportExcelService.export(getAllDepartmentsService());
     }
 
     @Transactional(readOnly = true)

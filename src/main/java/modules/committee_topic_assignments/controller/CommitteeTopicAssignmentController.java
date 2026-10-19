@@ -21,6 +21,7 @@ import modules.committee_topic_assignments.dto.CreateCommitteeTopicAssignmentReq
 import modules.committee_topic_assignments.dto.UpdateDefenseScheduleRequest;
 import modules.committee_topic_assignments.enums.EnumCommitteeTopicAssignmentSuccess;
 import modules.committee_topic_assignments.service.CommitteeTopicAssignmentService;
+import modules.students.export.ExportExcelService;
 
 @RestController
 @RequestMapping("/api/committee-topic-assignments")
@@ -64,6 +65,14 @@ public class CommitteeTopicAssignmentController {
                 return ResponseEntity.ok(
                                 ApiResponse.success(HttpStatus.OK.value(),
                                                 EnumCommitteeTopicAssignmentSuccess.GET_ALL.getMessage(), response));
+        }
+
+        @PreAuthorize(HAS_ROLE_ADMIN)
+        @GetMapping("/export")
+        public ResponseEntity<byte[]> exportCommitteeTopicAssignmentsController() {
+                return ExportExcelService.download(
+                                committeeTopicAssignmentService.exportCommitteeTopicAssignmentsToExcelService(),
+                                "phan-cong-de-tai");
         }
 
         // xem chi tiết
