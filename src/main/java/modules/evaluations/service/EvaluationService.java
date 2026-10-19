@@ -46,6 +46,7 @@ public class EvaluationService {
         private final StudentRepository studentRepository;
         private final GroupMemberRepository groupMemberRepository;
         private final UserRepository userRepository;
+        private final NotificationService notificationService;
         private final EvaluationMapper evaluationMapper;
 
         @Transactional
@@ -133,6 +134,14 @@ public class EvaluationService {
                                                 .publishedAt(LocalDateTime.now())
                                                 .build());
                 committeeTopicAssignment.setStatus(CommitteeTopicAssignmentStatus.COMPLETED);
+                // thông báo đã có điểm
+                List<Long> memberIds = groupMemberRepository
+                                .findAllByStudentGroupId(committeeTopicAssignment
+                                                .getTopicRegistration().getStudentGroup().getId())
+                                .stream().map(gm -> gm.getStudent().getUserId()).toList();
+                NotificationService.notifyUsers(memberIds, NotificationType.RESULT_PUBLISHED,
+                                "Đã công bố điểm",
+                                "Điểm cuối cùng của nhóm: " + finalScore);
                 return evaluationMapper.toFinalResultResponse(finalResult, evaluations);
 
         }
