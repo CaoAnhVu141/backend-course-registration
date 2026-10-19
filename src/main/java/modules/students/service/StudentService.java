@@ -62,14 +62,6 @@ public class StudentService {
         return studentMapper.toResponse(student);
     }
 
-    // Tra cứu sinh viên theo mã số (để thêm thành viên nhóm)
-    @Transactional(readOnly = true)
-    public StudentResponse getStudentByCodeService(String studentCode) {
-        Student student = studentRepository.findByStudentCode(studentCode)
-                .orElseThrow(() -> new StudentException(EnumStudentError.STUDENT_NOT_FOUND));
-        return studentMapper.toResponse(student);
-    }
-
     @Transactional(readOnly = true)
     public StudentResponse getMyProfileService(String username) {
         Student student = studentRepository.findByUserUsername(username)

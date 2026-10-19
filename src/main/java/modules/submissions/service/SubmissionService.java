@@ -34,14 +34,11 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import modules.notifications.enums.NotificationType;
-import modules.notifications.service.NotificationService;
 
 @Service
 @RequiredArgsConstructor
 public class SubmissionService {
 
-        private final NotificationService notificationService;
         private final SubmissionRepository submissionRepository;
         private final SubmissionVersionRepository submissionVersionRepository;
         private final TopicRegistrationRepository topicRegistrationRepository;
@@ -105,13 +102,6 @@ public class SubmissionService {
                                                 .changeNote(changeNote)
                                                 .uploadedBy(user.getEmail())
                                                 .build());
-                // báo nhóm: nộp bài thành công
-                List<Long> memberIds = groupMemberRepository.findAllByStudentGroupId(
-                                submission.getTopicRegistration().getStudentGroup().getId()).stream()
-                                .map(gm -> gm.getStudent().getUserId()).toList();
-                notificationService.notifyUsers(memberIds,
-                                NotificationType.SUBMISSION_SUBMITTED, "Nộp bài thành công",
-                                "Nhóm đã nộp bản báo cáo mới: " + submissionVersion.getFileName());
                 return submissionMapper.toSubmissionVersionResponse(submissionVersion);
         }
 
@@ -164,12 +154,6 @@ public class SubmissionService {
                                                 .lecturer(lecturer)
                                                 .comment(createSubmissionFeedbackRequest.getComment().trim())
                                                 .build());
-                List<Long> memberIds = groupMemberRepository.findAllByStudentGroupId(
-                                submissionVersion.getSubmission().getTopicRegistration().getId()).stream()
-                                .map(gm -> gm.getStudent().getUserId()).toList();
-                notificationService.notifyUsers(memberIds, NotificationType.FEEDBACK,
-                                "Có nhận xét mới cho báo cáo",
-                                "Giảng viên vừa nhận xét báo cáo của nhóm.");
                 return submissionMapper.toResponseSubmissionFeedbackResponse(feedback);
         }
 
