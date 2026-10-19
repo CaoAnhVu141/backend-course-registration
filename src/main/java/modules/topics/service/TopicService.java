@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import modules.departments.repository.DepartmentRepository;
 import modules.lecturers.entity.Lecturer;
 import modules.lecturers.repository.LecturerRepository;
+import modules.notifications.service.NotificationService;
+import modules.notifications.enums.NotificationType;
 import modules.registration_period.repository.RegistrationPeriodRepository;
 import modules.topics.dto.CreateTopicRequest;
 import modules.topics.dto.TopicResponse;
@@ -26,6 +28,9 @@ import modules.topics.exception.TopicException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import modules.notifications.enums.NotificationType;
+
+import javax.management.Notification;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +42,7 @@ public class TopicService {
     private final DepartmentRepository departmentRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final TopicMapper topicMapper;
+    private final NotificationService notificationService;
 
     @Transactional
     public TopicResponse createTopicService(CreateTopicRequest request, String username) {
@@ -150,6 +156,8 @@ public class TopicService {
             throw new TopicException(EnumTopicError.INVALID_TOPIC_STATUS);
         }
         topic.setStatus(TopicStatus.PUBLISHED);
+        notificationService.notifyByRole("STUDENT", NotificationType.TOPIC_PUBLISHED, "Có đề tài được công bố",
+                "Đề tài: " + topic.getTitle());
         return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
     }
 

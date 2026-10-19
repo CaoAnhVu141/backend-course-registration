@@ -39,6 +39,8 @@ import modules.topic_registrations.enums.TopicRegistrationStatus;
 import modules.topic_registrations.repository.TopicRegistrationRepository;
 import modules.topics.entity.TopicSupervisor;
 import modules.topics.repository.TopicSupervisorRepository;
+import modules.notifications.enums.NotificationType;
+import modules.notifications.service.NotificationService;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +56,7 @@ public class CommitteeTopicAssignmentService {
         private final GroupMemberRepository groupMemberRepository;
         private final UserRepository userRepository;
         private final CommitteeTopicAssignmentMapper committeeTopicAssignmentMapper;
+        private final NotificationService notificationService;
 
         // phân công đề tài cho hội đồng
         @Transactional
@@ -130,6 +133,9 @@ public class CommitteeTopicAssignmentService {
                                                 .assignedBy(user.getEmail())
                                                 .assignedAt(LocalDateTime.now())
                                                 .build());
+                notificationService.notifyUsers(groupMemberUserIds(topicRegistration),
+                                NotificationType.DEFENSE_SCHEDULED, "Đề tài đã được đưa ra hội đồng",
+                                buildScheduleMessage(committeeTopicAssignment));
                 return committeeTopicAssignmentMapper.toResponse(committeeTopicAssignment);
 
         }
@@ -158,6 +164,10 @@ public class CommitteeTopicAssignmentService {
                 committeeTopicAssignment.setScheduledEnd(updateDefenseScheduleRequest.getScheduledEnd());
                 committeeTopicAssignment.setRoom(updateDefenseScheduleRequest.getRoom());
 
+                notificationService.notifyUsers(
+                                groupMemberUserIds(committeeTopicAssignment.getTopicRegistration()),
+                                NotificationType.DEFENSE_SCHEDULED, "Cập nhật lịch bảo vệ",
+                                buildScheduleMessage(committeeTopicAssignment));
                 return committeeTopicAssignmentMapper.toResponse(committeeTopicAssignment);
         }
 
@@ -353,5 +363,27 @@ public class CommitteeTopicAssignmentService {
                         throw new CommitteeTopicAssignmentException(
                                         EnumCommitteeTopicAssignmentError.DEFENSE_ROOM_TIME_CONFLICT);
                 }
+        }
+
+        // lấy thành viên theo đề tài đăng kí
+        private List<Long> groupMemberUserIds(TopicRegistration topicRegistration) {
+                return groupMemberRepository.findAllByStudentGroupId(topicRegistration.getStudentGroup().getId())
+                                .stream().map(gm -> gm.getStudent().getUserId()).toList();
+        }
+
+        // cấu hình lịch bảo vệ
+        private String buildScheduleMessage(CommitteeTopicAssignment item) {
+                StringBuilder stringBuilder = new StringBuilder();
+                if (item.getScheduledStart() != null) {
+                        stringBuilder.append("Thời gian: ").append(item.getScheduledStart());
+                        if (item.getScheduledEnd() != null) {
+                                stringBuilder.append(" - ").append(item.getScheduledEnd());
+                        }
+                        stringBuilder.append(". ");
+                }
+                if (item.getRoom() != null) {
+                        stringBuilder.append("Phòng: ").append(item.getRoom()).append(".");
+                }
+                return stringBuilder.length() == 0 ? "Đề tài đã được phân công hội đồng." : stringBuilder.toString();
         }
 }

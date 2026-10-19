@@ -18,6 +18,8 @@ import modules.topic_registrations.repository.TopicRegistrationRepository;
 import modules.topic_registrations.entity.TopicRegistration;
 import modules.lecturers.entity.Lecturer;
 import modules.lecturers.repository.LecturerRepository;
+import modules.notifications.service.NotificationService;
+import modules.notifications.enums.NotificationType;
 import modules.submissions.dto.CreateSubmissionFeedbackRequest;
 import modules.submissions.dto.SubmissionFeedbackResponse;
 import modules.submissions.entity.SubmissionFeedback;
@@ -48,6 +50,7 @@ public class SubmissionService {
         private final LecturerRepository lecturerRepository;
         private final GroupMemberRepository groupMemberRepository;
         private final FileStorageService fileStorageService;
+        private final NotificationService notificationService;
 
         @Transactional
         public SubmissionResponse createSubmissionService(CreateSubmissionRequest createSubmissionRequest,
@@ -79,7 +82,6 @@ public class SubmissionService {
                                                 .status(true)
                                                 .submittedAt(LocalDateTime.now())
                                                 .build());
-
                 return submissionMapper.toResponse(submission, List.of());
         }
 
@@ -102,6 +104,12 @@ public class SubmissionService {
                                                 .changeNote(changeNote)
                                                 .uploadedBy(user.getEmail())
                                                 .build());
+                List<Long> memberIds = groupMemberRepository.findAllByStudentGroupId(
+                                submission.getTopicRegistration().getStudentGroup().getId()).stream()
+                                .map(gm -> gm.getStudent().getUserId()).toList();
+                notificationService.notifyUsers(memberIds, NotificationType.SUBMISSION_SUBMITTED,
+                                "Nộp báo cáo thành công",
+                                "Nhóm đã nộp bản báo cáo mới: " + submissionVersion.getFileName());
                 return submissionMapper.toSubmissionVersionResponse(submissionVersion);
         }
 
@@ -154,6 +162,13 @@ public class SubmissionService {
                                                 .lecturer(lecturer)
                                                 .comment(createSubmissionFeedbackRequest.getComment().trim())
                                                 .build());
+                List<Long> memberIds = groupMemberRepository.findAllByStudentGroupId(
+                                submissionVersion.getSubmission().getTopicRegistration().getStudentGroup().getId())
+                                .stream()
+                                .map(gm -> gm.getStudent().getUserId()).toList();
+                notificationService.notifyUsers(memberIds, NotificationType.FEEDBACK,
+                                "Có nhận xét mới cho báo cáo",
+                                "Giảng viên vừa nhận xét báo cáo của nhóm.");
                 return submissionMapper.toResponseSubmissionFeedbackResponse(feedback);
         }
 
