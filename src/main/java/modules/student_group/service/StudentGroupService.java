@@ -104,6 +104,19 @@ public class StudentGroupService {
                                 .toList();
         }
 
+        // Sinh viên xem các nhóm của chính mình
+        @Transactional(readOnly = true)
+        public List<StudentGroupResponse> getMyStudentGroupsService(String username) {
+                Student student = studentRepository.findByUserUsername(username)
+                                .orElseThrow(() -> new StudentGroupException(EnumStudentGroupError.STUDENT_NOT_FOUND));
+                return groupMemberRepository.findAllByStudentUserId(student.getUserId()).stream()
+                                .map(GroupMember::getStudentGroup)
+                                .distinct()
+                                .map(studentGroup -> studentGroupMapper.toResponse(studentGroup,
+                                                groupMemberRepository.findAllByStudentGroupId(studentGroup.getId())))
+                                .toList();
+        }
+
         @Transactional(readOnly = true)
         public StudentGroupResponse getStudentGroupByIdService(Long id) {
                 StudentGroup studentGroup = findStudentGroupById(id);
