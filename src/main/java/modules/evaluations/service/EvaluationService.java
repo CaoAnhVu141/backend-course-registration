@@ -139,7 +139,7 @@ public class EvaluationService {
                                 .findAllByStudentGroupId(committeeTopicAssignment
                                                 .getTopicRegistration().getStudentGroup().getId())
                                 .stream().map(gm -> gm.getStudent().getUserId()).toList();
-                NotificationService.notifyUsers(memberIds, NotificationType.RESULT_PUBLISHED,
+                notificationService.notifyUsers(memberIds, NotificationType.RESULT_PUBLISHED,
                                 "Đã công bố điểm",
                                 "Điểm cuối cùng của nhóm: " + finalScore);
                 return evaluationMapper.toFinalResultResponse(finalResult, evaluations);

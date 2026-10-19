@@ -3,6 +3,8 @@ package modules.topic_registrations.service;
 import lombok.RequiredArgsConstructor;
 import modules.auth.entity.User;
 import modules.auth.repository.UserRepository;
+import modules.notifications.enums.NotificationType;
+import modules.notifications.service.NotificationService;
 import modules.student_group.entity.StudentGroup;
 import modules.student_group.repository.GroupMemberRepository;
 import modules.student_group.repository.StudentGroupRepository;
@@ -37,6 +39,7 @@ public class TopicRegistrationService {
     private final TopicRegistrationMapper topicRegistrationMapper;
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public TopicRegistrationResponse createTopicRegistrationService(
@@ -148,6 +151,10 @@ public class TopicRegistrationService {
         topicRegistration.setStatus(TopicRegistrationStatus.APPROVED);
         topicRegistration.setDecidedBy(user.getEmail());
         topicRegistration.setRejectedReason(null);
+
+        notificationService.notifyUsers(groupMemberUserIds(topicRegistration), NotificationType.REGISTRATION_DECISION,
+                "Đăng ký đề tài được duyệt",
+                "Đề tài \"" + topicRegistration.getTopic().getTitle() + "\" đã được duyệt.");
         return topicRegistrationMapper.toResponse(topicRegistration);
     }
 
@@ -164,6 +171,11 @@ public class TopicRegistrationService {
         topicRegistration.setStatus(TopicRegistrationStatus.REJECTED);
         topicRegistration.setDecidedBy(user.getEmail());
         topicRegistration.setRejectedReason(rejectTopicRegistrationRequest.getRejectionReason().trim());
+
+        notificationService.notifyUsers(groupMemberUserIds(topicRegistration), NotificationType.REGISTRATION_DECISION,
+                "Đăng ký đề tài bị từ chối",
+                "Đề tài \"" + topicRegistration.getTopic().getTitle() + "\" bị từ chối. Lý do: "
+                        + topicRegistration.getRejectedReason());
         return topicRegistrationMapper.toResponse(topicRegistration);
     }
 
@@ -212,5 +224,10 @@ public class TopicRegistrationService {
     private User findUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new TopicRegistrationException(EnumTopicRegistrationError.USER_NOT_FOUND));
+    }
+
+    private List<Long> groupMemberUserIds(TopicRegistration topicRegistration) {
+        return groupMemberRepository.findAllByStudentGroupId(topicRegistration.getStudentGroup().getId())
+                .stream().map(gm -> gm.getStudent().getUserId()).toList();
     }
 }
