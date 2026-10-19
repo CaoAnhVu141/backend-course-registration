@@ -31,6 +31,8 @@ import modules.lecturers.repository.LecturerRepository;
 import modules.student_group.repository.GroupMemberRepository;
 import modules.students.entity.Student;
 import modules.students.repository.StudentRepository;
+import modules.notifications.enums.NotificationType;
+import modules.notifications.service.NotificationService;
 
 @Service
 @RequiredArgsConstructor
