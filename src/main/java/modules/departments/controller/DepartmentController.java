@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import global.response.ApiResponse;
 import modules.departments.enums.EnumDepartmentSuccess;
+import modules.students.export.ExportExcelService;
 
 import java.util.List;
 
@@ -41,6 +42,11 @@ public class DepartmentController {
                         HttpStatus.OK.value(),
                         EnumDepartmentSuccess.GET_ALL.getMessage(),
                         response));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportDepartmentsController() {
+        return ExportExcelService.download(departmentService.exportDepartmentsToExcelService(), "phong-ban");
     }
 
     @GetMapping("/{id}")

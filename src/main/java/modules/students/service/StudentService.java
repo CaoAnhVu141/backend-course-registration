@@ -15,6 +15,7 @@ import modules.departments.repository.DepartmentRepository;
 import modules.students.dto.UpdateStudentRequest;
 import modules.students.enums.EnumStudentError;
 import modules.students.exception.StudentException;
+import modules.students.export.StudentExportExcelService;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,7 @@ public class StudentService {
     private final UserAccountService userAccountService;
     private final StudentMapper studentMapper;
     private final DepartmentRepository departmentRepository;
+    private final StudentExportExcelService studentExportExcelService;
 
     @Transactional
     public StudentResponse register(RegisterStudentRequest request) {
@@ -54,6 +56,11 @@ public class StudentService {
         return studentRepository.findAll().stream()
                 .map(studentMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] exportStudentsToExcelService() {
+        return studentExportExcelService.export(getAllStudentsService());
     }
 
     @Transactional

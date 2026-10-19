@@ -39,6 +39,7 @@ import modules.topic_registrations.enums.TopicRegistrationStatus;
 import modules.topic_registrations.repository.TopicRegistrationRepository;
 import modules.topics.entity.TopicSupervisor;
 import modules.topics.repository.TopicSupervisorRepository;
+import modules.committee_topic_assignments.export.CommitteeTopicAssignmentExportExcelService;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +55,7 @@ public class CommitteeTopicAssignmentService {
         private final GroupMemberRepository groupMemberRepository;
         private final UserRepository userRepository;
         private final CommitteeTopicAssignmentMapper committeeTopicAssignmentMapper;
+        private final CommitteeTopicAssignmentExportExcelService committeeTopicAssignmentExportExcelService;
 
         // phân công đề tài cho hội đồng
         @Transactional
@@ -190,6 +192,12 @@ public class CommitteeTopicAssignmentService {
         public List<CommitteeTopicAssignmentResponse> getAllCommitteeTopicAssignmentService() {
                 return committeeTopicAssignmentRepository.findAll().stream()
                                 .map(committeeTopicAssignmentMapper::toResponse).toList();
+        }
+
+        @Transactional(readOnly = true)
+        public byte[] exportCommitteeTopicAssignmentsToExcelService() {
+                return committeeTopicAssignmentExportExcelService.export(
+                                getAllCommitteeTopicAssignmentService());
         }
 
         @Transactional(readOnly = true)
