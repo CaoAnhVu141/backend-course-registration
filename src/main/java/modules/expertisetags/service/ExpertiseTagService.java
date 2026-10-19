@@ -14,7 +14,6 @@ import modules.expertisetags.dto.ExpertiseTagResponse;
 import modules.expertisetags.repository.ExpertiseTagRepository;
 import modules.expertisetags.dto.CreateExpertiseTagRequest;
 import modules.expertisetags.dto.UpdateExpertiseTagRequest;
-import modules.expertisetags.export.ExpertiseTagExportExcelService;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +21,6 @@ public class ExpertiseTagService {
 
     private final ExpertiseTagRepository expertiseTagRepository;
     private final ExpertiseTagMapper expertiseTagMapper;
-    private final ExpertiseTagExportExcelService expertiseTagExportExcelService;
 
     @Transactional
     public ExpertiseTagResponse createExpertiseTagService(CreateExpertiseTagRequest expertiseTagRequest) {
@@ -44,11 +42,6 @@ public class ExpertiseTagService {
                 .stream()
                 .map(expertiseTagMapper::toResponse)
                 .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public byte[] exportExpertiseTagsToExcelService() {
-        return expertiseTagExportExcelService.export(getAllExpertiseTagsService());
     }
 
     @Transactional(readOnly = true)

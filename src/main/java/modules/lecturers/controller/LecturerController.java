@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import modules.lecturers.dto.*;
 import modules.lecturers.service.LecturerService;
-import modules.students.export.ExportExcelService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import global.response.ApiResponse;
@@ -42,12 +41,6 @@ public class LecturerController {
                         HttpStatus.OK.value(),
                         EnumLecturerSuccess.GET_ALL.getMessage(),
                         response));
-    }
-
-    @PreAuthorize(PermissionConstants.HAS_ROLE_ADMIN)
-    @GetMapping("/export")
-    public ResponseEntity<byte[]> exportLecturersController() {
-        return ExportExcelService.download(lecturerService.exportLecturersToExcelService(), "giang-vien");
     }
 
     @PreAuthorize(PermissionConstants.HAS_ROLE_ADMIN)

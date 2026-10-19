@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import modules.expertisetags.enums.EnumExpertiseTagSuccess;
 import global.response.ApiResponse;
-import modules.students.export.ExportExcelService;
 
 @RestController
 @RequestMapping("/api/expertise-tags")
@@ -40,12 +39,6 @@ public class ExpertiseTagController {
                         HttpStatus.OK.value(),
                         EnumExpertiseTagSuccess.GET_ALL.getMessage(),
                         response));
-    }
-
-    @GetMapping("/export")
-    public ResponseEntity<byte[]> exportExpertiseTagsController() {
-        return ExportExcelService.download(
-                expertiseTagService.exportExpertiseTagsToExcelService(), "chuyen-mon");
     }
 
     @GetMapping("/{id}")
