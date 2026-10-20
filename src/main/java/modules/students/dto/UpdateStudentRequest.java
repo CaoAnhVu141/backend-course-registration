@@ -11,6 +11,10 @@ import lombok.Setter;
 @Setter
 public class UpdateStudentRequest {
 
+    @NotBlank(message = "Họ tên không được để trống")
+    @Size(max = 255, message = "Họ tên không được vượt quá 255 ký tự")
+    private String name;
+
     @NotBlank(message = "Mã sinh viên không được để trống")
     @Size(max = 50, message = "Mã sinh viên không được vượt quá 50 ký tự")
     private String studentCode;
