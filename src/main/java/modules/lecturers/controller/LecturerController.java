@@ -83,14 +83,14 @@ public class LecturerController {
 
     @PreAuthorize(PermissionConstants.HAS_ROLE_ADMIN)
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ApiResponse<Void>> deleteLecturerController(@PathVariable Long userId) {
-        lecturerService.deleteLecturerService(userId);
+    public ResponseEntity<ApiResponse<LecturerResponse>> deleteLecturerController(@PathVariable Long userId) {
+        LecturerResponse response = lecturerService.deleteLecturerService(userId);
 
         return ResponseEntity.ok(
                 ApiResponse.success(
                         HttpStatus.OK.value(),
                         EnumLecturerSuccess.DELETED.getMessage(),
-                        null));
+                        response));
     }
 
     // @todo: Admin tạo tài khoản cho giảng viên

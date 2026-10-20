@@ -16,6 +16,9 @@ import modules.submissions.repository.SubmissionVersionRepository;
 import modules.topic_registrations.enums.TopicRegistrationStatus;
 import modules.topic_registrations.repository.TopicRegistrationRepository;
 import modules.topic_registrations.entity.TopicRegistration;
+import modules.committee_topic_assignments.entity.CommitteeTopicAssignment;
+import modules.committee_topic_assignments.repository.CommitteeTopicAssignmentRepository;
+import modules.defense_committees.repository.CommitteeMemberRepository;
 import modules.lecturers.entity.Lecturer;
 import modules.lecturers.repository.LecturerRepository;
 import modules.notifications.service.NotificationService;
@@ -51,6 +54,8 @@ public class SubmissionService {
         private final GroupMemberRepository groupMemberRepository;
         private final FileStorageService fileStorageService;
         private final NotificationService notificationService;
+        private final CommitteeTopicAssignmentRepository committeeTopicAssignmentRepository;
+        private final CommitteeMemberRepository committeeMemberRepository;
 
         @Transactional
         public SubmissionResponse createSubmissionService(CreateSubmissionRequest createSubmissionRequest,
@@ -92,6 +97,15 @@ public class SubmissionService {
                 User user = userRepository.findByUsername(username)
                                 .orElseThrow(() -> new SubmissionException(EnumSubmissionError.USER_NOT_FOUND));
                 Submission submission = findSubmissionById(submissionId);
+
+                // Không cho sinh viên upload file vào submission của nhóm khác.
+                if (!groupMemberRepository.existsByStudentGroupIdAndStudentUserIdAndRole(
+                                submission.getTopicRegistration().getStudentGroup().getId(),
+                                user.getId(),
+                                GroupMemberRole.LEADER)) {
+                        throw new SubmissionException(EnumSubmissionError.NOT_GROUP_LEADER);
+                }
+
                 // lưu file thật xuống đĩa, lấy storageKey
                 String storageKey = fileStorageService.store(file);
                 SubmissionVersion submissionVersion = submissionVersionRepository.save(
@@ -156,6 +170,19 @@ public class SubmissionService {
                                 .findById(createSubmissionFeedbackRequest.getSubmissionVersionId())
                                 .orElseThrow(() -> new SubmissionException(
                                                 EnumSubmissionError.SUBMISSION_VERSION_NOT_FOUND));
+
+                TopicRegistration topicRegistration = submissionVersion.getSubmission().getTopicRegistration();
+                CommitteeTopicAssignment assignment = committeeTopicAssignmentRepository
+                                .findByTopicRegistrationId(topicRegistration.getId())
+                                .orElseThrow(() -> new SubmissionException(
+                                                EnumSubmissionError.ASSIGNMENT_NOT_FOUND));
+
+                // Chỉ giảng viên thuộc hội đồng của đề tài mới được nhận xét.
+                if (!committeeMemberRepository.existsByLecturerUserIdAndDefenseCommitteeId(
+                                lecturer.getUserId(), assignment.getDefenseCommittee().getId())) {
+                        throw new SubmissionException(EnumSubmissionError.NOT_COMMITTEE_MEMBER);
+                }
+
                 SubmissionFeedback feedback = submissionFeedbackRepository.save(
                                 SubmissionFeedback.builder()
                                                 .submissionVersion(submissionVersion)

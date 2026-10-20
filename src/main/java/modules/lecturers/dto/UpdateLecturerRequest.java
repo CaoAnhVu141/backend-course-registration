@@ -13,6 +13,10 @@ import java.util.Set;
 @Setter
 public class UpdateLecturerRequest {
 
+    @NotBlank(message = "Họ tên không được để trống")
+    @Size(max = 255, message = "Họ tên không được vượt quá 255 ký tự")
+    private String name;
+
     @NotBlank(message = "Mã giảng viên không được để trống")
     @Size(max = 50, message = "Mã giảng viên không được vượt quá 50 ký tự")
     private String lecturerCode;

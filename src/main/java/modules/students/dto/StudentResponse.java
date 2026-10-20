@@ -9,6 +9,7 @@ public class StudentResponse {
     private String username;
     private String email;
     private String name;
+    private boolean status;
     private Set<String> roles;
     private String studentCode;
     private Long departmentId;

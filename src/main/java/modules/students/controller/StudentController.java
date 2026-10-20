@@ -93,12 +93,12 @@ public class StudentController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ApiResponse<Void>> deleteStudentController(@PathVariable Long userId) {
-        studentService.deleteStudentService(userId);
+    public ResponseEntity<ApiResponse<StudentResponse>> deleteStudentController(@PathVariable Long userId) {
+        StudentResponse response = studentService.deleteStudentService(userId);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         HttpStatus.OK.value(),
                         EnumStudentSuccess.DELETED.getMessage(),
-                        null));
+                        response));
     }
 }

@@ -101,10 +101,11 @@ public class StudentService {
     }
 
     @Transactional
-    public void deleteStudentService(Long userId) {
+    public StudentResponse deleteStudentService(Long userId) {
         Student student = findStudentById(userId);
         student.getUser().setStatus(false);
         userRepository.save(student.getUser());
+        return studentMapper.toResponse(student);
     }
 
     // function helper

@@ -3,6 +3,7 @@ package modules.lecturers.service;
 import lombok.RequiredArgsConstructor;
 import modules.auth.entity.User;
 import modules.auth.service.UserAccountService;
+import modules.auth.repository.UserRepository;
 import modules.lecturers.dto.*;
 import modules.lecturers.entity.Lecturer;
 import modules.lecturers.repository.LecturerRepository;
@@ -28,6 +29,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class LecturerService {
     private final LecturerRepository lecturerRepository;
+    private final UserRepository userRepository;
     private final UserAccountService userAccountService;
     private final LecturerMapper lecturerMapper;
     private final DepartmentRepository departmentRepository;
@@ -95,15 +97,20 @@ public class LecturerService {
         lecturer.setDepartmentId(updateLecturerRequest.getDepartmentId());
         lecturer.setAcademicTitle(updateLecturerRequest.getAcademicTitle());
         lecturer.setMaxReviewLoad(updateLecturerRequest.getMaxReviewLoad());
+        lecturer.getUser().setName(updateLecturerRequest.getName().trim());
+        userRepository.save(lecturer.getUser());
+        lecturerRepository.save(lecturer);
         updateLecturerExpertiseTags(lecturer, updateLecturerRequest.getExpertiseTagIds());
 
         return lecturerMapper.toResponse(lecturer, getExpertiseTagIds(lecturer.getUserId()));
     }
 
     @Transactional
-    public void deleteLecturerService(Long userId) {
+    public LecturerResponse deleteLecturerService(Long userId) {
         Lecturer lecturer = findLecturerById(userId);
         lecturer.getUser().setStatus(false);
+        userRepository.save(lecturer.getUser());
+        return lecturerMapper.toResponse(lecturer, getExpertiseTagIds(lecturer.getUserId()));
     }
 
     // function helper
