@@ -19,12 +19,14 @@ import modules.student_group.repository.GroupMemberRepository;
 import modules.student_group.repository.StudentGroupRepository;
 import modules.students.entity.Student;
 import modules.students.repository.StudentRepository;
+import modules.topic_registrations.repository.TopicRegistrationRepository;
 import modules.student_group.dto.StudentGroupResponse;
 import java.util.HashSet;
 
 import java.time.LocalDateTime;
 
 @Service
+
 @RequiredArgsConstructor
 public class StudentGroupService {
 
@@ -34,6 +36,7 @@ public class StudentGroupService {
         private final RegistrationPeriodRepository registrationPeriodRepository;
         private final StudentRepository studentRepository;
         private static final int maxGroupMembers = 3;
+        private final TopicRegistrationRepository topicRegistrationRepository;
 
         @Transactional
         public StudentGroupResponse createStudentGroupService(CreateStudentGroupRequest createStudentGroupRequest,
@@ -127,6 +130,9 @@ public class StudentGroupService {
         @Transactional
         public void deleteStudentGroupService(Long id) {
                 StudentGroup studentGroup = findStudentGroupById(id);
+                if (topicRegistrationRepository.existsByStudentGroupId(id)) {
+                        throw new StudentGroupException(EnumStudentGroupError.GROUP_HAS_REGISTRATIONS);
+                }
                 groupMemberRepository.deleteAllByStudentGroupId(id);
                 studentGroupRepository.delete(studentGroup);
         }
