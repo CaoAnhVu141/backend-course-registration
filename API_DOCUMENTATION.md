@@ -1757,6 +1757,11 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
    - **Admin/Lecturer/Student** xem chi tiết bài nộp → `GET /api/submissions/{id}`, xem theo đăng ký đề tài → `GET /api/submissions/topic-registration/{topicRegistrationId}`.
    - **Giảng viên** góp ý cho phiên bản bài nộp → `POST /api/submissions/feedbacks`, xem góp ý của mình → `GET /api/submissions/feedbacks/me`.
    - **Admin/Lecturer/Student** xem góp ý theo phiên bản bài nộp → `GET /api/submissions/versions/{submissionVersionId}/feedbacks`.
+   - **Sinh viên (nhóm trưởng)** upload file báo cáo → `POST /api/submissions/versions` (multipart); tải file → `GET /api/submissions/versions/{versionId}/download`.
+10. **Chấm điểm (Evaluations)**: GV hội đồng chấm → `POST /api/evaluations`; **chủ tịch** công bố → `POST /api/evaluations/assignments/{id}/publish`; SV xem điểm nhóm mình → `GET /api/evaluations/my-group`.
+11. **Thông báo (Notifications)**: lấy danh sách → `GET /api/notifications/me`, số chưa đọc → `GET /api/notifications/me/unread-count`, đánh dấu đã đọc → `PATCH /api/notifications/{id}/read`.
+12. **Realtime (WebSocket)**: kết nối `GET /ws` (SockJS) kèm `Authorization: Bearer <token>` lúc CONNECT, subscribe `/user/queue/notifications` để nhận thông báo đẩy.
+13. **Tìm kiếm đề tài**: `GET /api/topics/search?keyword=&departmentId=&registrationPeriodId=&status=`.
 
    > 🆕 **Kỳ đăng ký**: `type` giờ là enum `SUBJECT` | `NCKH` | `TLCN` | `KLTN`. `reviewerScoreDeadline` chỉ gửi khi `TLCN`/`KLTN`, `defenseDate` chỉ gửi khi `KLTN` — gửi thừa cho loại khác sẽ bị từ chối.
 
@@ -1765,4 +1770,173 @@ Hầu hết các endpoint trả về wrapper `ApiResponse`:
 > 🆕 **Bài nộp**: `POST /api/submissions` chỉ cho **nhóm trưởng** nộp; SV khác → 409 "Chỉ nhóm trưởng mới được nộp báo cáo".
 
 > 🆕 **Hội đồng bảo vệ**: thêm thành viên bị chặn nếu đủ 5 GV hoặc đã có chủ tịch/thư ký. Đóng hội đồng yêu cầu 3–5 GV, đúng 1 chủ tịch + 1 thư ký.
+
+---
+
+# 12. 🔍 Tìm kiếm / lọc đề tài — `/api/topics/search`
+
+**GET** `/api/topics/search` — Quyền: `ADMIN`, `LECTURER`
+
+Tất cả tham số đều **tùy chọn**, để trống thì không lọc theo tiêu chí đó:
+
+| Query param | Kiểu | Mô tả |
+|-------------|------|-------|
+| `keyword` | string | Tìm trong tiêu đề hoặc yêu cầu (không phân biệt hoa thường) |
+| `departmentId` | long | Lọc theo khoa |
+| `registrationPeriodId` | long | Lọc theo kỳ đăng ký |
+| `status` | enum | `PENDING` / `APPROVED` / `PUBLISHED` / `REJECTED` |
+
+Ví dụ:
+```
+GET /api/topics/search?keyword=web&status=PUBLISHED
+GET /api/topics/search?departmentId=1&registrationPeriodId=2
+```
+Response: `ApiResponse<List<TopicResponse>>` (giống `GET /api/topics`).
+
+---
+
+# 13. 🔎 Tra cứu sinh viên theo mã — `/api/students/by-code/{studentCode}`
+
+**GET** `/api/students/by-code/{studentCode}` — Quyền: `ADMIN`, `LECTURER`, `STUDENT`
+
+Dùng khi thêm thành viên vào nhóm (tìm SV bằng MSSV). Trả về `ApiResponse<StudentResponse>`. Không tìm thấy → 404/400 với message "Sinh viên không tồn tại".
+
+---
+
+# 14. 📎 Upload & tải file báo cáo
+
+## 14.1 Upload phiên bản báo cáo (multipart)
+
+**POST** `/api/submissions/versions` — Quyền: `STUDENT` — `Content-Type: multipart/form-data`
+
+| Field (form-data) | Kiểu | Bắt buộc | Mô tả |
+|-------------------|------|:--------:|-------|
+| `submissionId` | long | ✅ | ID bài nộp |
+| `changeNote` | string | | Ghi chú thay đổi của phiên bản |
+| `file` | file | ✅ | File báo cáo (tối đa 20MB) |
+
+Response: `ApiResponse<SubmissionVersionResponse>`. Khi nộp thành công, nhóm nhận thông báo `SUBMISSION_SUBMITTED`.
+
+> Giới hạn: `spring.servlet.multipart.max-file-size=20MB`. File lưu xuống thư mục `file.upload-dir` (mặc định `uploads/submissions`) với tên là UUID; metadata (tên gốc, mime, kích thước, storageKey) lưu ở bảng `submission_versions`.
+
+## 14.2 Tải file phiên bản báo cáo
+
+**GET** `/api/submissions/versions/{versionId}/download` — Quyền: `ADMIN`, `LECTURER`, `STUDENT`
+
+Trả về file nhị phân kèm header `Content-Disposition: attachment; filename="<tên gốc>"`.
+
+---
+
+# 15. 🏛️ Phân công hội đồng chấm đề tài — `/api/committee-topic-assignments` (đầy đủ)
+
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/committee-topic-assignments` | Phân công đề tài cho hội đồng | ADMIN |
+| PUT | `/api/committee-topic-assignments/{id}/schedule` | Cập nhật lịch + phòng bảo vệ | ADMIN |
+| PATCH | `/api/committee-topic-assignments/{id}/complete` | Xác nhận đã bảo vệ xong | ADMIN |
+| PATCH | `/api/committee-topic-assignments/{id}/cancel` | Huỷ phân công | ADMIN |
+| GET | `/api/committee-topic-assignments` | Danh sách tất cả phân công | ADMIN |
+| GET | `/api/committee-topic-assignments/{id}` | Chi tiết phân công | ADMIN, LECTURER |
+| GET | `/api/committee-topic-assignments/defense-committee/{defenseCommitteeId}` | Đề tài một hội đồng chấm | ADMIN, LECTURER |
+| GET | `/api/committee-topic-assignments/me` | Lịch chấm của GV đang đăng nhập | LECTURER |
+| GET | `/api/committee-topic-assignments/my-group` | Lịch bảo vệ của nhóm SV | STUDENT |
+
+> Khi tạo phân công hoặc đổi lịch, nhóm SV nhận thông báo `DEFENSE_SCHEDULED`. Trạng thái: `ASSIGNED` → `COMPLETED` / `CANCELED`.
+
+---
+
+# 16. 🧮 Chấm điểm & Kết quả — `/api/evaluations`
+
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/evaluations` | Thành viên hội đồng chấm điểm 0–10 cho 1 phân công | LECTURER |
+| POST | `/api/evaluations/assignments/{assignmentId}/publish` | Chủ tịch công bố kết quả (điểm TB) | LECTURER (CHAIRMAN) |
+| GET | `/api/evaluations/assignments/{assignmentId}` | Danh sách điểm của một phân công | ADMIN, LECTURER |
+| GET | `/api/evaluations/assignments/{assignmentId}/result` | Kết quả cuối cùng | ADMIN, LECTURER, STUDENT |
+| GET | `/api/evaluations/my-group` | Điểm các nhóm mà SV tham gia | STUDENT |
+
+**Chấm điểm:**
+```json
+POST /api/evaluations
+{
+  "assignmentId": 1,
+  "score": 8.5,
+  "comment": "Báo cáo tốt"
+}
+```
+
+Ràng buộc: GV phải thuộc hội đồng của phân công; mỗi GV chỉ chấm 1 lần; phân công phải ở trạng thái `ASSIGNED`. Công bố kết quả: chỉ **CHAIRMAN**, yêu cầu **tất cả thành viên đã chấm**, điểm cuối = trung bình cộng; sau khi công bố phân công chuyển `COMPLETED` và nhóm SV nhận `RESULT_PUBLISHED`.
+
+---
+
+# 17. 🔔 Thông báo — `/api/notifications`
+
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/notifications` | Admin đăng thông báo tay (ALL / theo role) | ADMIN |
+| GET | `/api/notifications/me` | Thông báo của tôi (mới nhất trước) | ADMIN, LECTURER, STUDENT |
+| GET | `/api/notifications/me/unread-count` | Số chưa đọc | ADMIN, LECTURER, STUDENT |
+| PATCH | `/api/notifications/{id}/read` | Đánh dấu đã đọc (chỉ chủ sở hữu) | ADMIN, LECTURER, STUDENT |
+
+**Admin đăng tay:**
+```json
+POST /api/notifications
+{
+  "target": "STUDENT",
+  "title": "Thông báo",
+  "content": "Nội dung..."
+}
+```
+`target`: `ALL` / `STUDENT` / `LECTURER`.
+
+**`NotificationType`** (loại thông báo): `ANNOUNCEMENT`, `TOPIC_PUBLISHED`, `REGISTRATION_DECISION`, `FEEDBACK`, `RESULT_PUBLISHED`, `SUBMISSION_SUBMITTED`, `DEFENSE_SCHEDULED`.
+
+**`NotificationResponse`:**
+| Field | Kiểu | Mô tả |
+|-------|------|-------|
+| `id` | long | ID thông báo |
+| `type` | enum | Loại thông báo |
+| `title` | string | Tiêu đề |
+| `content` | string | Nội dung |
+| `readed` | boolean | Đã đọc hay chưa |
+| `readedAt` | datetime | Thời điểm đọc (null nếu chưa) |
+| `createdAt` | datetime | Thời điểm tạo |
+
+---
+
+# 18. 📡 WebSocket — Thông báo realtime
+
+| Thành phần | Giá trị |
+|------------|---------|
+| Endpoint handshake (SockJS) | `GET /ws` |
+| Xác thực | Header `Authorization: Bearer <accessToken>` gửi lúc **STOMP CONNECT** |
+| Kênh nhận thông báo cá nhân | subscribe `/user/queue/notifications` |
+| Prefix broker (server→client) | `/topic`, `/queue`, `/user` |
+| Prefix client→server | `/app` |
+
+Ví dụ kết nối (SockJS + STOMP.js):
+```js
+const sock = new SockJS('http://localhost:8080/ws');
+const stomp = Stomp.over(sock);
+stomp.connect({ Authorization: 'Bearer ' + accessToken }, () => {
+  stomp.subscribe('/user/queue/notifications', (msg) => {
+    const noti = JSON.parse(msg.body); // NotificationResponse
+    console.log(noti.title, noti.content);
+  });
+});
+```
+
+Payload đẩy về trùng cấu trúc `NotificationResponse`. Các sự kiện tự đẩy: nộp bài, nhận xét, phân công/đổi lịch bảo vệ, duyệt/từ chối đăng ký, công bố đề tài, công bố điểm.
+
+---
+
+# 19. 📊 Xuất Excel
+
+Các module có chức năng xuất danh sách ra file `.xlsx` (Apache POI): sinh viên, giảng viên, đề tài, đăng ký đề tài, phân công hội đồng, chấm điểm, chuyên môn. Response là file nhị phân `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` kèm `Content-Disposition: attachment`.
+
+---
+
+> 🆕 **Nhóm sinh viên — ràng buộc 3–5**: tạo nhóm tối đa **5** thành viên; đăng ký đề tài yêu cầu nhóm có tối thiểu **3** thành viên. Không xoá được nhóm đã có đăng ký đề tài (trả message rõ ràng thay vì lỗi khoá ngoại).
+
+> 🆕 **Lịch sử đăng ký của SV**: `GET /api/topic-registrations/me` — SV xem các đăng ký đề tài của mọi nhóm mình tham gia.
 

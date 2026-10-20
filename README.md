@@ -1,6 +1,6 @@
-# Backend Course Registration
+# Backend — Hệ thống Quản lý Đề tài Sinh viên
 
-Backend cho hệ thống đăng ký môn học (Course Registration), xây dựng bằng **Spring Boot 3.2** và **Java 21**.
+Backend cho **Hệ thống quản lý đề tài sinh viên Khoa CNTT** (quản lý đề tài, nhóm, đăng ký, nộp báo cáo, hội đồng, chấm điểm, thông báo realtime), xây dựng bằng **Spring Boot 3.2** và **Java 21**.
 
 ## 🚀 Công nghệ sử dụng
 
@@ -12,6 +12,9 @@ Backend cho hệ thống đăng ký môn học (Course Registration), xây dựn
 | Database | PostgreSQL |
 | ORM | Spring Data JPA (Hibernate) |
 | Security | Spring Security + JWT (jjwt 0.12.6) |
+| Realtime | Spring WebSocket + STOMP (thông báo đẩy realtime) |
+| Export Excel | Apache POI (poi-ooxml 5.2.5) |
+| Upload file | Spring Multipart (lưu file báo cáo xuống đĩa) |
 | Lombok | 1.18.34 |
 | Validation | Jakarta Validation |
 
@@ -28,6 +31,11 @@ src/main/java/
 │   │   └── GlobalExceptionHandler.java              # Xử lý exception tập trung
 │   ├── response/
 │   │   └── ApiResponse.java                         # Format response chuẩn
+│   ├── storage/
+│   │   └── FileStorageService.java                  # Lưu/đọc file báo cáo trên đĩa
+│   ├── websocket/
+│   │   ├── WebSocketConfig.java                     # Cấu hình STOMP endpoint /ws
+│   │   └── WebSocketAuthInterceptor.java            # Xác thực JWT khi CONNECT
 │   └── security/
 │       ├── JwtAuthenticationFilter.java             # Filter xác thực JWT
 │       ├── JwtService.java                          # Tạo/kiểm tra JWT
@@ -41,9 +49,12 @@ src/main/java/
     ├── registration_period/                         # Module quản lý kỳ đăng ký
     ├── student_group/                               # Module quản lý nhóm sinh viên
     ├── students/                                    # Module quản lý sinh viên
-    ├── topics/                                      # Module quản lý đề tài
+    ├── topics/                                      # Module quản lý đề tài (có tìm kiếm/lọc)
     ├── topic_registrations/                         # Module quản lý đăng ký đề tài
-    └── submissions/                                 # Module quản lý bài nộp
+    ├── submissions/                                 # Module quản lý bài nộp (upload file)
+    ├── committee_topic_assignments/                 # Module phân công hội đồng chấm đề tài
+    ├── evaluations/                                 # Module chấm điểm & công bố kết quả
+    └── notifications/                               # Module thông báo (REST + WebSocket)
 ```
 
 ### Giải thích các tầng trong module
@@ -214,7 +225,7 @@ submissions/
 ```
 > ✅ **Trạng thái**: Module này **đã hoàn thiện**. Hỗ trợ: tạo bài nộp (STUDENT), danh sách bài nộp (ADMIN, LECTURER), chi tiết bài nộp, bài nộp theo đăng ký đề tài, và **góp ý bài nộp** (LECTURER tạo góp ý, xem góp ý theo phiên bản / theo giảng viên). Một đăng ký đề tài đã được duyệt (`APPROVED`) chỉ có **một** bài nộp duy nhất. Mỗi bài nộp có thể có nhiều phiên bản (`SubmissionVersion`) lưu file báo cáo, và mỗi phiên bản có thể nhận nhiều góp ý (`SubmissionFeedback`) từ giảng viên.
 
-#### `modules/committee_topic_assignments` — Phân công hội đồng chấm đề tài 🚧 (đang làm)
+#### `modules/committee_topic_assignments` — Phân công hội đồng chấm đề tài ✅ (đã hoàn thiện)
 ```
 committee_topic_assignments/
 ├── controller/CommitteeTopicAssignmentController.java
@@ -226,7 +237,35 @@ committee_topic_assignments/
 ├── repository/CommitteeTopicAssignmentRepository.java
 └── service/CommitteeTopicAssignmentService.java
 ```
-> 🚧 **Trạng thái**: Gán một đăng ký đề tài (đã `APPROVED`) cho một hội đồng, kèm lịch + phòng bảo vệ. Mỗi đăng ký đề tài chỉ được phân công cho **đúng một** hội đồng. Ràng buộc khi phân công: hội đồng chưa `CLOSED` và **đã có chủ tịch**; hội đồng và đề tài cùng kỳ đăng ký; **GVHD không được chấm đề tài mình hướng dẫn**; thời gian bảo vệ không sớm hơn `defense_date` của kỳ; phòng không trùng giờ. Trạng thái phân công: `ASSIGNED`, `COMPLETED`, `CANCELED`. **Đã làm**: tạo phân công (POST), cập nhật lịch (PUT /schedule). **Chưa làm**: complete/cancel và các API GET.
+> ✅ **Trạng thái**: **Đã hoàn thiện**. Gán một đăng ký đề tài (đã `APPROVED`) cho một hội đồng, kèm lịch + phòng bảo vệ. Mỗi đăng ký đề tài chỉ được phân công cho **đúng một** hội đồng. Ràng buộc khi phân công: hội đồng chưa `CLOSED` và **đã có chủ tịch**; hội đồng và đề tài cùng kỳ đăng ký; **GVHD không được chấm đề tài mình hướng dẫn**; thời gian bảo vệ không sớm hơn `defense_date` của kỳ; phòng không trùng giờ. Trạng thái phân công: `ASSIGNED`, `COMPLETED`, `CANCELED`. Hỗ trợ đầy đủ: tạo phân công, cập nhật lịch, complete/cancel, và các API GET (tất cả / chi tiết / theo hội đồng / GV xem lịch chấm của mình / nhóm SV xem lịch bảo vệ). Khi tạo phân công hoặc đổi lịch, hệ thống **tự gửi thông báo** (`DEFENSE_SCHEDULED`) cho nhóm sinh viên.
+
+#### `modules/evaluations` — Chấm điểm & công bố kết quả ✅ (đã hoàn thiện)
+```
+evaluations/
+├── controller/EvaluationController.java
+├── dto/CreateEvaluationRequest.java, EvaluationResponse.java, FinalResultResponse.java
+├── entity/Evaluation.java, FinalResult.java
+├── enums/EvaluationStatus.java, EnumEvaluationError.java, EnumEvaluationSuccess.java
+├── exception/EvaluationException.java
+├── mapper/EvaluationMapper.java
+├── repository/EvaluationRepository.java, FinalResultRepository.java
+└── service/EvaluationService.java
+```
+> ✅ **Trạng thái**: **Đã hoàn thiện**. Mỗi thành viên hội đồng chấm điểm (0–10) cho một phân công đề tài (mỗi GV chỉ chấm 1 lần, phải thuộc hội đồng). **Chủ tịch (CHAIRMAN)** công bố kết quả: hệ thống tính **điểm trung bình cộng** của tất cả thành viên (yêu cầu đã chấm đủ) và lưu `FinalResult`. Sinh viên chỉ xem được điểm của nhóm mình. Khi công bố, nhóm sinh viên **nhận thông báo** (`RESULT_PUBLISHED`).
+
+#### `modules/notifications` — Thông báo (REST + WebSocket realtime) ✅ (đã hoàn thiện)
+```
+notifications/
+├── controller/NotificationController.java
+├── dto/CreateNotificationRequest.java, NotificationResponse.java
+├── entity/Notification.java
+├── enums/NotificationType.java, NotificationTarget.java, EnumNotificationError.java, EnumNotificationSuccess.java
+├── exception/NotificationException.java
+├── mapper/NotificationMapper.java
+├── repository/NotificationRepository.java
+└── service/NotificationService.java
+```
+> ✅ **Trạng thái**: **Đã hoàn thiện**. Admin đăng thông báo tay (gửi `ALL` / theo role `STUDENT` / `LECTURER`). Các sự kiện nghiệp vụ tự sinh thông báo qua hàm dùng chung `notifyUsers(...)`. Mỗi thông báo vừa **lưu DB** vừa **đẩy realtime qua WebSocket** tới đúng người nhận (`/user/queue/notifications`). Loại thông báo (`NotificationType`): `ANNOUNCEMENT`, `TOPIC_PUBLISHED`, `REGISTRATION_DECISION`, `FEEDBACK`, `RESULT_PUBLISHED`, `SUBMISSION_SUBMITTED`, `DEFENSE_SCHEDULED`.
 
 
 
@@ -318,6 +357,7 @@ POST /api/auth/login
 | POST | `/api/students/register` | Đăng ký sinh viên | Public |
 | GET | `/api/students` | Lấy danh sách sinh viên | ADMIN, LECTURER |
 | GET | `/api/students/{userId}` | Lấy sinh viên theo id | ADMIN, LECTURER |
+| GET | `/api/students/by-code/{studentCode}` | Tra cứu sinh viên theo mã số (dùng khi thêm thành viên nhóm) | ADMIN, LECTURER, STUDENT |
 | GET | `/api/students/me` | Lấy thông tin cá nhân | STUDENT |
 | PUT | `/api/students/{userId}` | Cập nhật sinh viên | ADMIN |
 | DELETE | `/api/students/{userId}` | Xóa sinh viên (soft delete) | ADMIN |
@@ -440,6 +480,7 @@ POST /api/registration-periods
 |--------|----------|-------|-------|
 | POST | `/api/topics` | Tạo đề tài | LECTURER |
 | GET | `/api/topics` | Lấy danh sách tất cả đề tài | ADMIN, LECTURER |
+| GET | `/api/topics/search` | Tìm kiếm/lọc đề tài (keyword, departmentId, registrationPeriodId, status) | ADMIN, LECTURER |
 | GET | `/api/topics/published` | Lấy danh sách đề tài đã công bố | STUDENT |
 | GET | `/api/topics/{id}` | Lấy đề tài theo id | ADMIN, LECTURER |
 | GET | `/api/topics/me` | Lấy đề tài của giảng viên đang đăng nhập | LECTURER |
@@ -491,14 +532,17 @@ POST /api/student-groups
 ```
 
 > **Lưu ý**: Người tạo nhóm (từ token đăng nhập) tự động được thêm vào nhóm với vai trò `LEADER`. Các thành viên trong `memberUserIds` có vai trò `MEMBER`. Tất cả thành viên phải chưa thuộc nhóm nào trong cùng kỳ đăng ký.
+> **Ràng buộc số lượng **: mỗi nhóm **tối đa 5 thành viên** (chặn khi tạo nhóm) và **tối thiểu 3 thành viên** mới được đăng ký đề tài (chặn khi đăng ký). Không thể xoá nhóm nếu nhóm đã có đăng ký đề tài.
 
 ### Bài nộp (Submissions) ✅
 
 | Method | Endpoint | Mô tả | Quyền |
 |--------|----------|-------|-------|
-| POST | `/api/submissions` | Tạo bài nộp cho đăng ký đề tài | STUDENT |
+| POST | `/api/submissions` | Tạo bài nộp cho đăng ký đề tài (chỉ nhóm trưởng) | STUDENT |
 | GET | `/api/submissions` | Lấy danh sách tất cả bài nộp | ADMIN, LECTURER |
 | GET | `/api/submissions/{id}` | Lấy chi tiết bài nộp theo id | ADMIN, LECTURER, STUDENT |
+| POST | `/api/submissions/versions` | **Upload file** phiên bản báo cáo (multipart: `submissionId`, `changeNote`, `file`) | STUDENT |
+| GET | `/api/submissions/versions/{versionId}/download` | **Tải file** phiên bản báo cáo | ADMIN, LECTURER, STUDENT |
 | GET | `/api/submissions/topic-registration/{topicRegistrationId}` | Lấy bài nộp theo đăng ký đề tài | ADMIN, LECTURER, STUDENT |
 | POST | `/api/submissions/feedbacks` | Tạo góp ý cho phiên bản bài nộp | LECTURER |
 | GET | `/api/submissions/versions/{submissionVersionId}/feedbacks` | Lấy góp ý theo phiên bản bài nộp | ADMIN, LECTURER, STUDENT |
@@ -547,19 +591,35 @@ POST /api/defense-committees/1/members
 
 > **Lưu ý**: Hội đồng ở trạng thái `CLOSED` không thể thêm thành viên. Một giảng viên không thể được thêm vào cùng một hội đồng hai lần. Trạng thái hội đồng: `ACTIVE` (đang hoạt động), `INACTIVE` (ngừng hoạt động), `CLOSED` (đã đóng). Vai trò thành viên: `MEMBER`, `REVIEWER`, `CHAIRMAN`, `SECRETARY`.
 
-### Phân công hội đồng chấm đề tài (Committee Topic Assignments) 🚧
+### Đăng ký đề tài (Topic Registrations) ✅
 
-| Method | Endpoint | Mô tả | Quyền | Trạng thái |
-|--------|----------|-------|-------|:---------:|
-| POST | `/api/committee-topic-assignments` | Phân công đề tài cho hội đồng | ADMIN | ✅ |
-| PUT | `/api/committee-topic-assignments/{id}/schedule` | Cập nhật lịch + phòng bảo vệ | ADMIN | ✅ |
-| PATCH | `/api/committee-topic-assignments/{id}/complete` | Xác nhận đã bảo vệ xong | ADMIN | 🚧 |
-| PATCH | `/api/committee-topic-assignments/{id}/cancel` | Huỷ phân công | ADMIN | 🚧 |
-| GET | `/api/committee-topic-assignments` | Danh sách tất cả phân công | ADMIN, LECTURER | 🚧 |
-| GET | `/api/committee-topic-assignments/{id}` | Chi tiết phân công | ADMIN, LECTURER | 🚧 |
-| GET | `/api/committee-topic-assignments/defense-committee/{id}` | Đề tài một hội đồng chấm | ADMIN, LECTURER | 🚧 |
-| GET | `/api/committee-topic-assignments/me` | Lịch chấm của GV | LECTURER | 🚧 |
-| GET | `/api/committee-topic-assignments/my-group` | Lịch bảo vệ của nhóm SV | STUDENT | 🚧 |
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/topic-registrations` | Đăng ký đề tài cho nhóm (nhóm ≥ 3 thành viên) | STUDENT |
+| GET | `/api/topic-registrations` | Danh sách tất cả đăng ký | ADMIN, LECTURER |
+| GET | `/api/topic-registrations/{id}` | Chi tiết đăng ký | ADMIN, LECTURER, STUDENT |
+| GET | `/api/topic-registrations/student-group/{studentGroupId}` | Đăng ký theo nhóm | ADMIN, LECTURER |
+| GET | `/api/topic-registrations/topic/{topicId}` | Đăng ký theo đề tài | ADMIN, LECTURER |
+| PATCH | `/api/topic-registrations/{id}/approve` | Duyệt đăng ký | ADMIN, LECTURER |
+| PATCH | `/api/topic-registrations/{id}/reject` | Từ chối đăng ký | ADMIN, LECTURER |
+| PATCH | `/api/topic-registrations/{id}/cancel` | Huỷ đăng ký | STUDENT |
+| GET | `/api/topic-registrations/me` | Lịch sử đăng ký đề tài của các nhóm mình tham gia | STUDENT |
+
+> Khi **duyệt/từ chối** đăng ký, nhóm sinh viên nhận thông báo `REGISTRATION_DECISION`.
+
+### Phân công hội đồng chấm đề tài (Committee Topic Assignments) ✅
+
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/committee-topic-assignments` | Phân công đề tài cho hội đồng | ADMIN |
+| PUT | `/api/committee-topic-assignments/{id}/schedule` | Cập nhật lịch + phòng bảo vệ | ADMIN |
+| PATCH | `/api/committee-topic-assignments/{id}/complete` | Xác nhận đã bảo vệ xong | ADMIN |
+| PATCH | `/api/committee-topic-assignments/{id}/cancel` | Huỷ phân công | ADMIN |
+| GET | `/api/committee-topic-assignments` | Danh sách tất cả phân công | ADMIN |
+| GET | `/api/committee-topic-assignments/{id}` | Chi tiết phân công | ADMIN, LECTURER |
+| GET | `/api/committee-topic-assignments/defense-committee/{defenseCommitteeId}` | Đề tài một hội đồng chấm | ADMIN, LECTURER |
+| GET | `/api/committee-topic-assignments/me` | Lịch chấm của GV đang đăng nhập | LECTURER |
+| GET | `/api/committee-topic-assignments/my-group` | Lịch bảo vệ của nhóm SV | STUDENT |
 
 ```json
 POST /api/committee-topic-assignments
@@ -571,6 +631,67 @@ POST /api/committee-topic-assignments
   "room": "A5-101"
 }
 ```
+
+### Chấm điểm & Kết quả (Evaluations) ✅
+
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/evaluations` | Thành viên hội đồng chấm điểm (0–10) cho 1 phân công | LECTURER |
+| POST | `/api/evaluations/assignments/{assignmentId}/publish` | **Chủ tịch** công bố kết quả (tính điểm TB) | LECTURER (CHAIRMAN) |
+| GET | `/api/evaluations/assignments/{assignmentId}` | Danh sách điểm của một phân công | ADMIN, LECTURER |
+| GET | `/api/evaluations/assignments/{assignmentId}/result` | Kết quả cuối cùng của một phân công | ADMIN, LECTURER, STUDENT |
+| GET | `/api/evaluations/my-group` | Điểm của các nhóm mà SV tham gia | STUDENT |
+
+```json
+POST /api/evaluations
+{
+  "assignmentId": 1,
+  "score": 8.5,
+  "comment": "Báo cáo tốt, cần bổ sung phần kiểm thử"
+}
+```
+
+> Công bố kết quả yêu cầu **tất cả thành viên hội đồng đã chấm**; điểm cuối = trung bình cộng. Khi công bố, nhóm SV nhận thông báo `RESULT_PUBLISHED`.
+
+### Thông báo (Notifications) ✅
+
+| Method | Endpoint | Mô tả | Quyền |
+|--------|----------|-------|-------|
+| POST | `/api/notifications` | Admin đăng thông báo tay (ALL / theo role) | ADMIN |
+| GET | `/api/notifications/me` | Thông báo của tôi (mới nhất trước) | ADMIN, LECTURER, STUDENT |
+| GET | `/api/notifications/me/unread-count` | Số thông báo chưa đọc | ADMIN, LECTURER, STUDENT |
+| PATCH | `/api/notifications/{id}/read` | Đánh dấu đã đọc | ADMIN, LECTURER, STUDENT |
+
+```json
+POST /api/notifications
+{
+  "target": "STUDENT",
+  "title": "Thông báo lịch bảo vệ",
+  "content": "Các nhóm chuẩn bị bảo vệ tuần sau."
+}
+```
+
+> `target`: `ALL` / `STUDENT` / `LECTURER`.
+
+### WebSocket (Thông báo realtime)
+
+| Thành phần | Giá trị |
+|------------|---------|
+| Endpoint (SockJS) | `GET /ws` (kèm header `Authorization: Bearer <accessToken>` lúc CONNECT) |
+| Kênh nhận thông báo | subscribe `/user/queue/notifications` |
+| Prefix broker | `/topic`, `/queue`, `/user` |
+| Prefix client → server | `/app` |
+
+Ví dụ FE (SockJS + STOMP):
+```js
+const sock = new SockJS('http://localhost:8080/ws');
+const stomp = Stomp.over(sock);
+stomp.connect({ Authorization: 'Bearer ' + token }, () => {
+  stomp.subscribe('/user/queue/notifications', msg => console.log(JSON.parse(msg.body)));
+});
+```
+
+> Mỗi khi có sự kiện (nộp bài, nhận xét, phân công/đổi lịch bảo vệ, duyệt/từ chối đăng ký, công bố đề tài, công bố điểm), hệ thống vừa lưu DB vừa **đẩy realtime** tới đúng người nhận đang online.
 
 ## 📦 Format Response
 
@@ -605,16 +726,23 @@ Các module dùng `ApiResponse` (students, lecturers, expertisetags, registratio
 | Registration Periods (kỳ đăng ký) | ✅ Hoàn thiện | CRUD đầy đủ |
 | Topics (đề tài) | ✅ Hoàn thiện | Tạo, xem, cập nhật, duyệt/từ chối/công bố, xóa. Lưu lý do từ chối |
 | Topic Registrations (đăng ký đề tài) | ✅ Hoàn thiện | Đăng ký, duyệt/từ chối/hủy, xem theo nhóm/đề tài |
-| Submissions (bài nộp) | ✅ Hoàn thiện | Tạo bài nộp, xem danh sách/chi tiết, xem theo đăng ký đề tài, góp ý bài nộp |
+| Submissions (bài nộp) | ✅ Hoàn thiện | Tạo bài nộp (nhóm trưởng), **upload/tải file** báo cáo, góp ý bài nộp |
 | Defense Committees (hội đồng bảo vệ) | ✅ Hoàn thiện | Tạo hội đồng, thêm thành viên, xem danh sách/chi tiết, xem theo kỳ đăng ký, xem hội đồng của tôi, đóng hội đồng |
+| Committee Topic Assignments (phân công hội đồng) | ✅ Hoàn thiện | Phân công đề tài, lịch/phòng bảo vệ, complete/cancel, các API GET |
+| Evaluations (chấm điểm) | ✅ Hoàn thiện | Chấm điểm 0–10, chủ tịch công bố điểm TB, SV tra cứu điểm nhóm mình |
+| Notifications (thông báo) | ✅ Hoàn thiện | REST + **WebSocket realtime**, admin đăng tay + 7 loại sự kiện tự động |
+| Export Excel | ✅ Hoàn thiện | Xuất danh sách (SV, GV, đề tài, đăng ký, phân công, chấm điểm...) ra file `.xlsx` |
 
-> 📌 **Tính năng đang chờ phát triển / chưa hoàn thiện:**
-> - **Phân công giảng viên hướng dẫn** (`supervisorIds` hiện chưa có endpoint để gán) — chưa làm
-> - **Chấm điểm phản biện** (reviewer score) — chưa làm
-### 🆕 Cập nhật nghiệp vụ gần đây
+### 🆕 Nghiệp vụ nổi bật
 
 - **Kỳ đăng ký — `type` là enum 4 giá trị**: `SUBJECT` (môn học), `NCKH`, `TLCN`, `KLTN`. `reviewerScoreDeadline` chỉ thiết lập khi `TLCN`/`KLTN`; `defenseDate` chỉ khi `KLTN`. Gửi sai loại (vd `SUBJECT` kèm `defenseDate`) → báo lỗi.
 - **Đề tài — 1 đến 2 GVHD**: người tạo là GVHD chính; truyền thêm `coSupervisorId` (tùy chọn, phải khác người tạo) để có GVHD thứ 2.
-- **Bài nộp — chỉ nhóm trưởng (LEADER)** mới được nộp báo cáo.
-- **Hội đồng bảo vệ — 3 đến 5 GV**, phải có **đúng 1 CHAIRMAN và 1 SECRETARY**. Ràng buộc số lượng/vai trò được kiểm tra khi thêm thành viên và khi đóng hội đồng.
+- **Tìm kiếm/lọc đề tài** nâng cao: `GET /api/topics/search` theo keyword + bộ môn + kỳ + trạng thái.
+- **Nhóm sinh viên — 3 đến 5 thành viên**: tối đa 5 khi tạo nhóm, tối thiểu 3 khi đăng ký đề tài. SV đã thuộc nhóm A không vào nhóm B cùng kỳ. Mỗi nhóm đúng 1 trưởng nhóm.
+- **Bài nộp — chỉ nhóm trưởng (LEADER)** mới được nộp; hỗ trợ **upload file** báo cáo nhiều phiên bản và **tải file** về.
+- **Hội đồng bảo vệ — 3 đến 5 GV**, phải có **đúng 1 CHAIRMAN và 1 SECRETARY**. GVHD **không được chấm** đề tài mình hướng dẫn.
+- **Chấm điểm**: tất cả thành viên hội đồng chấm 0–10; **chủ tịch** công bố điểm trung bình cộng; SV chỉ xem điểm nhóm mình theo đợt đã đăng ký.
+- **Thông báo realtime (WebSocket)**: 7 loại sự kiện tự đẩy tới người nhận online (thay cho gửi email).
+
+> 📌 **Không triển khai**: gửi email công bố kết quả (đã thay bằng **thông báo realtime qua WebSocket** — ghi rõ trong báo cáo ở mục tính năng mở rộng).
 
