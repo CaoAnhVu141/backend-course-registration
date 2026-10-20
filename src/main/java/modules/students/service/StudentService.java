@@ -38,7 +38,7 @@ public class StudentService {
         }
 
         User user = userAccountService.create(
-                request.getUsername(), request.getEmail(), request.getPassword(), "STUDENT");
+                request.getUsername(), request.getEmail(), request.getPassword(), request.getName(), "STUDENT");
         Student student = studentRepository.save(Student.builder()
                 .user(user)
                 .studentCode(request.getStudentCode())

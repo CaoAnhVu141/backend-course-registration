@@ -143,7 +143,7 @@ public class AuthService {
     @Transactional
     public RegisterResponse registerAdmin(RegisterRequest request) {
         User user = userAccountService.create(request.getUsername(), request.getEmail(), request.getPassword(),
-                "ADMIN");
+                request.getName(), "ADMIN");
         return authMapper.registerResponseMapper(user);
     }
 }

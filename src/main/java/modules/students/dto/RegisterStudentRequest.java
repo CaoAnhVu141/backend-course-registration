@@ -5,6 +5,9 @@ import lombok.*;
 
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class RegisterStudentRequest {
+    @NotBlank(message = "Họ tên không được để trống") @Size(max = 255)
+    private String name;
+
     @NotBlank @Size(max = 255)
     private String username;
 

@@ -45,7 +45,7 @@ public class LecturerService {
         }
 
         User user = userAccountService.create(
-                request.getUsername(), request.getEmail(), request.getPassword(), "LECTURER");
+                request.getUsername(), request.getEmail(), request.getPassword(), request.getName(), "LECTURER");
         Lecturer lecturer = lecturerRepository.save(Lecturer.builder()
                 .user(user)
                 .lecturerCode(request.getLecturerCode())

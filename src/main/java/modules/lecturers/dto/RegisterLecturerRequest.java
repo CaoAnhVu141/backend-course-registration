@@ -10,6 +10,9 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterLecturerRequest {
+    @NotBlank(message = "Họ tên không được để trống")
+    @Size(max = 255)
+    private String name;
     @NotBlank
     @Size(max = 255)
     private String username;

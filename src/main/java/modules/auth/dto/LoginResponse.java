@@ -17,6 +17,7 @@ public class LoginResponse {
     private Long id;
     private String username;
     private String email;
+    private String name;
     private Set<String> roles;
     // thời gian sống của access token (tính bằng giây)
     private Long expiresIn;

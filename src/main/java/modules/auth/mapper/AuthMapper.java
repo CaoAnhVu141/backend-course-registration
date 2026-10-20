@@ -19,6 +19,7 @@ public class AuthMapper {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .name(user.getName())
                 .roles(user
                         .getRoles()
                         .stream()
@@ -32,6 +33,7 @@ public class AuthMapper {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .name(user.getName())
                 .roles(user
                         .getRoles()
                         .stream()

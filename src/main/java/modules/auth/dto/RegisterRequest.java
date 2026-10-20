@@ -11,6 +11,9 @@ import jakarta.validation.constraints.NotBlank;
 @Builder
 public class RegisterRequest {
 
+    @NotBlank(message = "Họ tên không được để trống")
+    private String name;
+
     @NotBlank(message = "Username không được để trống")
     private String username;
 

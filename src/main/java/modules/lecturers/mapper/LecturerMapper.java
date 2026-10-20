@@ -16,6 +16,7 @@ public class LecturerMapper {
                 .userId(lecturer.getUser().getId())
                 .username(lecturer.getUser().getUsername())
                 .email(lecturer.getUser().getEmail())
+                .name(lecturer.getUser().getName())
                 .roles(
                         lecturer.getUser()
                                 .getRoles()

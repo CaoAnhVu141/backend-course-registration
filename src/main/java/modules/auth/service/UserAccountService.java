@@ -17,7 +17,7 @@ public class UserAccountService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User create(String username, String email, String rawPassword, String roleName) {
+    public User create(String username, String email, String rawPassword, String name, String roleName) {
         String normalizedUsername = username.trim();
         String normalizedEmail = email.trim().toLowerCase();
         if (userRepository.existsByUsername(normalizedUsername))
@@ -32,6 +32,7 @@ public class UserAccountService {
         return userRepository.save(User.builder()
                 .username(normalizedUsername)
                 .email(normalizedEmail)
+                .name(name == null ? null : name.trim())
                 .password(passwordEncoder.encode(rawPassword))
                 .status(true)
                 .roles(Set.of(role))

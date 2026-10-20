@@ -12,6 +12,7 @@ public class LecturerResponse {
     private Long userId;
     private String username;
     private String email;
+    private String name;
     private Set<String> roles;
     private String lecturerCode;
     private Long departmentId;
