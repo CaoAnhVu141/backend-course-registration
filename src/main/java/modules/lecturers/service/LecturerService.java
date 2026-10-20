@@ -123,6 +123,12 @@ public class LecturerService {
                             .orElseThrow(() -> new ExpertiseTagException(
                                     EnumExpertiseTagError.EXPERTISE_TAG_NOT_FOUND));
 
+                    // Không cho gán chuyên môn đã bị khóa cho giảng viên.
+                    if (!expertiseTag.isStatus()) {
+                        throw new ExpertiseTagException(
+                                EnumExpertiseTagError.EXPERTISE_TAG_INACTIVE);
+                    }
+
                     return LecturerExpertise.builder()
                             .id(LecturerExpertiseId.builder()
                                     .userId(lecturer.getUserId())
