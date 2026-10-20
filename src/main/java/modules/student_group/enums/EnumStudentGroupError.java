@@ -8,7 +8,7 @@ public enum EnumStudentGroupError {
     REGISTRATION_PERIOD_NOT_FOUND("Kỳ đăng ký không tồn tại"),
     STUDENT_NOT_FOUND("Sinh viên không tồn tại"),
     STUDENT_ALREADY_IN_GROUP("Sinh viên đã thuộc nhóm trong kỳ đăng ký này"),
-    GROUP_MEMBER_LIMIT_EXCEEDED("Mỗi nhóm tối đa 3 thành viên"),
+    GROUP_MEMBER_LIMIT_EXCEEDED("Mỗi nhóm tối đa 5 thành viên"),
     GROUP_HAS_REGISTRATIONS("Không thể xoá nhóm vì nhóm đã có đăng ký đề tài. Hãy huỷ đăng ký trước khi xoá.");
 
     private final String message;

@@ -40,6 +40,7 @@ public class TopicRegistrationService {
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final NotificationService notificationService;
+    private static final int MIN_GROUP_MEMBERS = 3;
 
     @Transactional
     public TopicRegistrationResponse createTopicRegistrationService(
@@ -53,6 +54,12 @@ public class TopicRegistrationService {
 
         if (!studentGroup.isStatus()) {
             throw new TopicRegistrationException(EnumTopicRegistrationError.STUDENT_GROUP_INACTIVE);
+        }
+
+        // check thành viên tạo nhóm
+        long memberCount = groupMemberRepository.findAllByStudentGroupId(studentGroup.getId()).size();
+        if (memberCount < MIN_GROUP_MEMBERS) {
+            throw new TopicRegistrationException(EnumTopicRegistrationError.GROUP_NOT_ENOUGH_MEMBERS);
         }
 
         Topic topic = topicRepository.findById(createTopicRegistrationRequest.getTopicId())

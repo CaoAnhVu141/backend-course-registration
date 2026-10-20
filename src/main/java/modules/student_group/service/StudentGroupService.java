@@ -35,7 +35,7 @@ public class StudentGroupService {
         private final StudentGroupMapper studentGroupMapper;
         private final RegistrationPeriodRepository registrationPeriodRepository;
         private final StudentRepository studentRepository;
-        private static final int maxGroupMembers = 3;
+        private static final int maxGroupMembers = 5;
         private final TopicRegistrationRepository topicRegistrationRepository;
 
         @Transactional
