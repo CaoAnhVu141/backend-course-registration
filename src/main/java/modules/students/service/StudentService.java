@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import modules.auth.entity.Role;
 import modules.auth.entity.User;
 import modules.auth.service.UserAccountService;
+import modules.auth.repository.UserRepository;
 import modules.students.dto.RegisterStudentRequest;
 import modules.students.dto.StudentResponse;
 import modules.students.entity.Student;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StudentService {
     private final StudentRepository studentRepository;
+    private final UserRepository userRepository;
     private final UserAccountService userAccountService;
     private final StudentMapper studentMapper;
     private final DepartmentRepository departmentRepository;
@@ -92,6 +94,9 @@ public class StudentService {
         student.setStudentCode(updateStudentRequest.getStudentCode());
         student.setDepartmentId(updateStudentRequest.getDepartmentId());
         student.setClassName(updateStudentRequest.getClassName());
+        student.getUser().setName(updateStudentRequest.getName().trim());
+        userRepository.save(student.getUser());
+        studentRepository.save(student);
         return studentMapper.toResponse(student);
     }
 
@@ -99,6 +104,7 @@ public class StudentService {
     public void deleteStudentService(Long userId) {
         Student student = findStudentById(userId);
         student.getUser().setStatus(false);
+        userRepository.save(student.getUser());
     }
 
     // function helper
