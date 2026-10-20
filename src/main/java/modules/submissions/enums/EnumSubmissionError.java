@@ -11,7 +11,9 @@ public enum EnumSubmissionError {
     USER_NOT_FOUND("Người dùng không tồn tại"),
     SUBMISSION_VERSION_NOT_FOUND("Phiên bản bài nộp không tồn tại"),
     LECTURER_NOT_FOUND("Giảng viên không tồn tại"),
-    NOT_GROUP_LEADER("Chỉ nhóm trưởng mới được nộp báo cáo");
+    NOT_GROUP_LEADER("Chỉ nhóm trưởng mới được nộp báo cáo"),
+    ASSIGNMENT_NOT_FOUND("Đề tài chưa được phân công hội đồng"),
+    NOT_COMMITTEE_MEMBER("Giảng viên không thuộc hội đồng của đề tài");
 
     private final String message;
 

@@ -71,10 +71,8 @@ public class ExpertiseTagService {
     @Transactional
     public void deleteExpertiseTagService(Long id) {
         ExpertiseTag expertiseTag = findExpertiseTagById(id);
-        if (expertiseTag == null) {
-            throw new ExpertiseTagException(EnumExpertiseTagError.EXPERTISE_TAG_NOT_FOUND);
-        }
-        expertiseTagRepository.delete(expertiseTag);
+        expertiseTag.setStatus(false);
+        expertiseTagRepository.save(expertiseTag);
     }
 
     
