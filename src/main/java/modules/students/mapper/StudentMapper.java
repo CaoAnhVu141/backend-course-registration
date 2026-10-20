@@ -16,6 +16,7 @@ public class StudentMapper {
                 .username(student.getUser().getUsername())
                 .email(student.getUser().getEmail())
                 .name(student.getUser().getName())
+                .status(student.getUser().isStatus())
                 .roles(
                         student.getUser()
                                 .getRoles()

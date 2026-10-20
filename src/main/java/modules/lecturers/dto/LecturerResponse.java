@@ -13,6 +13,7 @@ public class LecturerResponse {
     private String username;
     private String email;
     private String name;
+    private boolean status;
     private Set<String> roles;
     private String lecturerCode;
     private Long departmentId;
