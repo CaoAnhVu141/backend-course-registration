@@ -15,7 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
+import modules.topics.enums.TopicStatus;
 import java.util.List;
 
 import static global.security.PermissionConstants.HAS_ROLE_ADMIN;
@@ -25,6 +25,7 @@ import static global.security.PermissionConstants.HAS_ANY_ROLE_ADMIN_LECTURER;
 
 @Controller
 @RequestMapping("/api/topics")
+
 @RequiredArgsConstructor
 public class TopicController {
         private final TopicService topicService;
@@ -153,6 +154,20 @@ public class TopicController {
                                                 HttpStatus.OK.value(),
                                                 EnumTopicSuccess.DELETED.getMessage(),
                                                 null));
+        }
+
+        @PreAuthorize(HAS_ANY_ROLE_ADMIN_LECTURER)
+        @GetMapping("/search")
+        public ResponseEntity<ApiResponse<List<TopicResponse>>> searchTopicsController(
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) Long departmentId,
+                        @RequestParam(required = false) Long registrationPeriodId,
+                        @RequestParam(required = false) TopicStatus status) {
+                List<TopicResponse> response = topicService.searchTopicsService(
+                                keyword, departmentId, registrationPeriodId, status);
+                return ResponseEntity.ok(
+                                ApiResponse.success(HttpStatus.OK.value(),
+                                                EnumTopicSuccess.GET_ALL.getMessage(), response));
         }
 
 }

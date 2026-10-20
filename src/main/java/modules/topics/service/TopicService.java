@@ -1,7 +1,6 @@
 package modules.topics.service;
 
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import modules.departments.repository.DepartmentRepository;
@@ -20,7 +19,7 @@ import modules.topics.repository.TopicRepository;
 import modules.topics.repository.TopicSupervisorRepository;
 import modules.registration_period.entity.RegistrationPeriod;
 import java.time.LocalDateTime;
-
+import modules.topics.specification.TopicSpecification;
 import modules.topics.entity.TopicSupervisor;
 import modules.topics.entity.TopicSupervisorId;
 import modules.topics.enums.EnumTopicError;
@@ -29,10 +28,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import modules.notifications.enums.NotificationType;
-
 import javax.management.Notification;
 
 @Service
+
 @RequiredArgsConstructor
 public class TopicService {
 
@@ -172,6 +171,17 @@ public class TopicService {
         topic.setRejectionReason(reason.trim());
 
         return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
+    }
+
+    // tìm kiếm nâng cao
+    @Transactional(readOnly = true)
+    public List<TopicResponse> searchTopicsService(String keyword, Long departmentId,
+            Long registrationPeriodId, TopicStatus status) {
+        return topicRepository.findAll(
+                TopicSpecification.build(keyword, departmentId, registrationPeriodId, status))
+                .stream()
+                .map(topic -> topicMapper.toResponse(topic, getSupervisorIds(topic.getId())))
+                .toList();
     }
 
     // function helper
