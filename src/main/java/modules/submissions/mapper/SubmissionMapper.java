@@ -43,6 +43,7 @@ public class SubmissionMapper {
                 .id(submissionFeedback.getId())
                 .submissionVersionId(submissionFeedback.getSubmissionVersion().getId())
                 .lecturerUserId(submissionFeedback.getLecturer().getUserId())
+                .lecturerName(submissionFeedback.getLecturer().getUser().getName())
                 .lecturerEmail(submissionFeedback.getLecturer().getUser().getEmail())
                 .lecturerCode(submissionFeedback.getLecturer().getLecturerCode())
                 .comment(submissionFeedback.getComment())

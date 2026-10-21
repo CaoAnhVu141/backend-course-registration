@@ -18,6 +18,13 @@ public class ConversationController {
 
     private final ConversationService conversationService;
 
+    @GetMapping("/me")
+    public ResponseEntity<List<ConversationResponse>> getMyConversations(
+            Authentication authentication) {
+        return ResponseEntity.ok(
+                conversationService.getMyConversations(authentication.getName()));
+    }
+
     @GetMapping("/topic-registrations/{topicRegistrationId}")
     public ResponseEntity<ConversationResponse> getConversation(
             @PathVariable Long topicRegistrationId) {

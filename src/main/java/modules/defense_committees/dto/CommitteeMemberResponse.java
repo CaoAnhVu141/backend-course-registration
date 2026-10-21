@@ -13,6 +13,7 @@ public class CommitteeMemberResponse {
 
     private Long id;
     private Long lecturerId;
+    private String lecturerName;
     private String lecturerCode;
     private String lecturerEmail;
     private CommitteeRole committeeRole;

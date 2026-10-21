@@ -13,6 +13,7 @@ public class EvaluationResponse {
     private Long id;
     private Long assignmentId;
     private Long lecturerUserId;
+    private String lecturerName;
     private String lecturerCode;
     private String lecturerEmail;
 
