@@ -79,6 +79,11 @@ public class TopicRegistrationService {
                 .orElseThrow(() -> new TopicRegistrationException(
                         EnumTopicRegistrationError.REGISTRATION_PERIOD_NOT_FOUND));
 
+        if (!registrationPeriod.isStatus()) {
+            throw new TopicRegistrationException(
+                    EnumTopicRegistrationError.REGISTRATION_PERIOD_INACTIVE);
+        }
+
         LocalDateTime now = LocalDateTime.now();
 
         if (now.isBefore(registrationPeriod.getStudentRegistrationStart())

@@ -66,6 +66,10 @@ public class TopicService {
                         .proposedBy(lecturer.getUser().getEmail())
                         .status(TopicStatus.PENDING)
                         .build());
+
+        // Người tạo đề tài cũng là giảng viên hướng dẫn chính.
+        saveTopicSupervisor(topic, lecturer);
+
         Long coSupervisorId = request.getCoSupervisorId();
         if (coSupervisorId != null) {
             if (coSupervisorId.equals(lecturer.getUserId())) {
