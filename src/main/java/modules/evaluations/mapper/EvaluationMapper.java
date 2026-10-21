@@ -21,6 +21,7 @@ public class EvaluationMapper {
                 .id(evaluation.getId())
                 .assignmentId(evaluation.getCommitteeTopicAssignment().getId())
                 .lecturerUserId(lecturer.getUserId())
+                .lecturerName(lecturer.getUser().getName())
                 .lecturerCode(lecturer.getLecturerCode())
                 .lecturerEmail(lecturer.getUser().getEmail())
                 .score(evaluation.getScore())

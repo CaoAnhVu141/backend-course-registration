@@ -12,6 +12,7 @@ public class GroupMemberResponse {
 
     private Long userId;
     private String username;
+    private String name;
     private String studentCode;
     private GroupMemberRole role;
     private LocalDateTime joinedAt;

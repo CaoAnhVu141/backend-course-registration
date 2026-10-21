@@ -55,7 +55,8 @@ public class ConversationService {
         Conversation conversation = conversationRepository.save(
                 Conversation.builder()
                         .topicRegistration(topicRegistration)
-                        .name("Trao đổi đề tài - "
+                        .name(topicRegistration.getStudentGroup().getName()
+                                + " - "
                                 + topicRegistration.getTopic().getTitle())
                         .build());
 
@@ -105,6 +106,23 @@ public class ConversationService {
                 .toList();
 
         return toConversationResponse(conversation, memberIds);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ConversationResponse> getMyConversations(String username) {
+        User user = findUser(username);
+
+        return conversationMemberRepository.findAllByUser_Id(user.getId())
+                .stream()
+                .map(ConversationMember::getConversation)
+                .distinct()
+                .map(conversation -> toConversationResponse(
+                        conversation,
+                        conversationMemberRepository.findAllByConversationId(conversation.getId())
+                                .stream()
+                                .map(member -> member.getUser().getId())
+                                .toList()))
+                .toList();
     }
 
     @Transactional(readOnly = true)

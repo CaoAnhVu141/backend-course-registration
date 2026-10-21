@@ -12,5 +12,8 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
 
     List<ConversationMember> findAllByConversationId(Long conversationId);
 
+    // Lấy các conversation mà một user đang tham gia.
+    List<ConversationMember> findAllByUser_Id(Long userId);
+
     void deleteAllByConversationId(Long conversationId);
 }

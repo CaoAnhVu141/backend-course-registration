@@ -10,6 +10,7 @@ public class SubmissionFeedbackResponse {
     private Long id;
     private Long submissionVersionId;
     private Long lecturerUserId;
+    private String lecturerName;
     private String lecturerEmail;
     private String lecturerCode;
     private String comment;

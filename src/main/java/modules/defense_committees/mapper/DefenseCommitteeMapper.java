@@ -27,6 +27,7 @@ public class DefenseCommitteeMapper {
         return CommitteeMemberResponse.builder()
                 .id(committeeMember.getId())
                 .lecturerId(committeeMember.getLecturer().getUserId())
+                .lecturerName(committeeMember.getLecturer().getUser().getName())
                 .lecturerCode(committeeMember.getLecturer().getLecturerCode())
                 .lecturerEmail(committeeMember.getLecturer().getUser().getEmail())
                 .committeeRole(committeeMember.getCommitteeRole())

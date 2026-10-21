@@ -27,6 +27,7 @@ public class StudentGroupMapper {
         return GroupMemberResponse.builder()
                 .userId(member.getStudent().getUserId())
                 .username(member.getStudent().getUser().getUsername())
+                .name(member.getStudent().getUser().getName())
                 .studentCode(member.getStudent().getStudentCode())
                 .role(member.getRole())
                 .joinedAt(member.getJoinedAt())
