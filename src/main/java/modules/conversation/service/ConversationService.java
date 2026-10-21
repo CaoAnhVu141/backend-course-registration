@@ -31,6 +31,15 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ConversationService {
 
+    private final ConversationRepository conversationRepository;
+    private final TopicRegistrationRepository topicRegistrationRepository;
+    private final GroupMemberRepository groupMemberRepository;
+    private final TopicSupervisorRepository topicSupervisorRepository;
+    private final UserRepository userRepository;
+    private final ConversationMemberRepository conversationMemberRepository;
+    private final ChatMessageRepository chatMessageRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+
     // tự động tạo cuộc trò chuyện khi được duyệt chấp nhận
     @Transactional
     public ConversationResponse createTopicConversation(
