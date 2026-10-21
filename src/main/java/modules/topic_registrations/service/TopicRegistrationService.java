@@ -3,6 +3,7 @@ package modules.topic_registrations.service;
 import lombok.RequiredArgsConstructor;
 import modules.auth.entity.User;
 import modules.auth.repository.UserRepository;
+import modules.conversation.service.ConversationService;
 import modules.notifications.enums.NotificationType;
 import modules.notifications.service.NotificationService;
 import modules.student_group.entity.StudentGroup;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+
 @RequiredArgsConstructor
 public class TopicRegistrationService {
 
@@ -41,6 +43,7 @@ public class TopicRegistrationService {
     private final GroupMemberRepository groupMemberRepository;
     private final NotificationService notificationService;
     private static final int MIN_GROUP_MEMBERS = 3;
+    private final ConversationService conversationService;
 
     @Transactional
     public TopicRegistrationResponse createTopicRegistrationService(
@@ -164,6 +167,8 @@ public class TopicRegistrationService {
         topicRegistration.setDecidedBy(user.getEmail());
         topicRegistration.setRejectedReason(null);
 
+        // thêm nhóm tự động
+        conversationService.createTopicConversation(topicRegistration.getId());
         notificationService.notifyUsers(groupMemberUserIds(topicRegistration), NotificationType.REGISTRATION_DECISION,
                 "Đăng ký đề tài được duyệt",
                 "Đề tài \"" + topicRegistration.getTopic().getTitle() + "\" đã được duyệt.");
