@@ -16,6 +16,6 @@ public class CreateStudentGroupRequest {
     @Size(max = 255)
     private String name;
 
-    @NotEmpty(message = "Danh sách sinh viên không được để trống")
+    @NotEmpty(message = "Danh sách thành viên nhóm không được để trống")
     private Set<Long> memberUserIds;
 }

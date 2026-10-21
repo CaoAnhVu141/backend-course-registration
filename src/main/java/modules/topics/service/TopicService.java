@@ -145,6 +145,11 @@ public class TopicService {
             throw new TopicException(EnumTopicError.ONLY_PENDING_TOPIC_CAN_BE_APPROVED);
         }
         topic.setStatus(TopicStatus.APPROVED);
+        notificationService.notifyTopicLecturers(
+                topic.getProposedBy(),
+                getSupervisorIds(topic.getId()).stream().toList(),
+                "Đề tài đã được duyệt",
+                "Đề tài \"" + topic.getTitle() + "\" đã được admin duyệt.");
         return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
     }
 
@@ -169,6 +174,12 @@ public class TopicService {
         }
         topic.setStatus(TopicStatus.REJECTED);
         topic.setRejectionReason(reason.trim());
+        notificationService.notifyTopicLecturers(
+                topic.getProposedBy(),
+                getSupervisorIds(topic.getId()).stream().toList(),
+                "Đề tài bị từ chối",
+                "Đề tài \"" + topic.getTitle() + "\" bị từ chối. Lý do: "
+                        + topic.getRejectionReason());
 
         return topicMapper.toResponse(topic, getSupervisorIds(topic.getId()));
     }
