@@ -46,6 +46,11 @@ public class StudentGroupService {
                 }
                 Student leaderStudent = studentRepository.findByUserUsername(username)
                                 .orElseThrow(() -> new StudentGroupException(EnumStudentGroupError.STUDENT_NOT_FOUND));
+                if (createStudentGroupRequest.getMemberUserIds() == null
+                                || createStudentGroupRequest.getMemberUserIds().isEmpty()) {
+                        throw new StudentGroupException(EnumStudentGroupError.GROUP_MEMBERS_REQUIRED);
+                }
+
                 Set<Long> memberUserIds = new HashSet<>(createStudentGroupRequest.getMemberUserIds());
                 memberUserIds.add(leaderStudent.getUserId());
                 if (memberUserIds.size() > maxGroupMembers) {

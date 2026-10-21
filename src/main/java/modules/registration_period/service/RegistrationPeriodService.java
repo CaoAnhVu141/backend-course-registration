@@ -28,11 +28,6 @@ public class RegistrationPeriodService {
     public RegistrationPeriodResponse createRegistrationPeriodService(
             CreateRegistrationPeriodRequest registrationPeriodRequest) {
         registrationPeriodValidator.validateForCreate(registrationPeriodRequest);
-        // check điều kiện nếu type đã tồn tại
-        if (registrationPeriodRepository.existsByType(registrationPeriodRequest.getType())) {
-            throw new RegistrationPeriodException(EnumRegistrationPeriodError.REGISTRATION_PERIOD_TYPE_EXISTS);
-        }
-
         // check điều kiện name đã tồn tại
         if (registrationPeriodRepository.existsByName(registrationPeriodRequest.getName())) {
             throw new RegistrationPeriodException(EnumRegistrationPeriodError.REGISTRATION_PERIOD_NAME_EXISTS);
@@ -72,9 +67,10 @@ public class RegistrationPeriodService {
         registrationPeriodValidator.validateForUpdate(updateRegistrationPeriodRequest);
         RegistrationPeriod registrationPeriod = findRegistrationPeriodById(id);
 
-        if (!registrationPeriod.getType().equals(updateRegistrationPeriodRequest.getType())
-                && registrationPeriodRepository.existsByType(updateRegistrationPeriodRequest.getType())) {
-            throw new RegistrationPeriodException(EnumRegistrationPeriodError.REGISTRATION_PERIOD_TYPE_EXISTS);
+        if (!registrationPeriod.getName().equals(updateRegistrationPeriodRequest.getName())
+                && registrationPeriodRepository.existsByNameAndIdNot(
+                        updateRegistrationPeriodRequest.getName(), id)) {
+            throw new RegistrationPeriodException(EnumRegistrationPeriodError.REGISTRATION_PERIOD_NAME_EXISTS);
         }
         registrationPeriod.setName(updateRegistrationPeriodRequest.getName());
         registrationPeriod.setType(updateRegistrationPeriodRequest.getType());

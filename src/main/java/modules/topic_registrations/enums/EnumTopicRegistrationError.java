@@ -16,6 +16,7 @@ public enum EnumTopicRegistrationError {
     INVALID_TOPIC_REGISTRATION_STATUS("Trạng thái đăng ký đề tài không hợp lệ"),
     NOT_REGISTRATION_OWNER("Bạn không có quyền thao tác đăng ký đề tài này"),
     REGISTRATION_PERIOD_NOT_FOUND("Kỳ đăng ký không tồn tại"),
+    REGISTRATION_PERIOD_INACTIVE("Kỳ đăng ký không hoạt động"),
     TOPIC_NOT_IN_REGISTRATION_PERIOD("Đề tài không thuộc kỳ đăng ký của nhóm"),
     STUDENT_REGISTRATION_NOT_OPEN("Chưa đến thời gian hoặc đã hết hạn đăng ký đề tài"),
     GROUP_NOT_ENOUGH_MEMBERS("Nhóm phải có tối thiểu 3 thành viên mới được đăng ký đề tài");

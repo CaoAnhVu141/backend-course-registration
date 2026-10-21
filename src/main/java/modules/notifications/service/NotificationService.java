@@ -1,7 +1,9 @@
 package modules.notifications.service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ import modules.notifications.repository.NotificationRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Service
+
 @RequiredArgsConstructor
 public class NotificationService {
 
@@ -75,6 +78,24 @@ public class NotificationService {
         List<Long> userIds = userRepository.findAllByRolesName(roleName)
                 .stream().map(User::getId).toList();
         notifyUsers(userIds, type, title, content);
+    }
+
+    // thông báo tới giảng viên
+    @Transactional
+    public void notifyTopicLecturers(
+            String proposedByEmail,
+            List<Long> supervisorUserIds,
+            String title,
+            String content) {
+        Set<Long> recipientIds = new HashSet<>(supervisorUserIds == null
+                ? List.of()
+                : supervisorUserIds);
+
+        userRepository.findByEmail(proposedByEmail)
+                .map(User::getId)
+                .ifPresent(recipientIds::add);
+
+        notifyUsers(recipientIds.stream().toList(), NotificationType.TOPIC_DECISION, title, content);
     }
 
     // thông báo của tôi (mới nhất trước)
